@@ -32,6 +32,7 @@ public class ControladorVentanas {
 		switch (comprobarCampos(usuario, password)) {
 		case 0:
 			response = fbc.iniciarSesion(usuario, password) ? 0 : -1;
+			return response;
 		case 1:
 			response = 1;
 			return response;

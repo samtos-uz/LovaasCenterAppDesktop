@@ -207,6 +207,7 @@ public class VentanaLogin extends JFrame {
 			public void mousePressed(MouseEvent e) {
 
 				bordeUsuarioCampo.setBackground(Color.gray);
+				lblErrorLogin.setText("");
 
 				if (txtUsuario.getText().equals("Ingrese su nombre de usuario")) {
 					txtUsuario.setText("");
@@ -240,6 +241,7 @@ public class VentanaLogin extends JFrame {
 			public void mousePressed(MouseEvent e) {
 
 				bordePassCampo.setBackground(Color.gray);
+				lblErrorLogin.setText("");
 
 				if (String.valueOf(passwordField.getPassword()).equals("●●●●●●")) {
 					passwordField.setText("");
@@ -325,14 +327,19 @@ public class VentanaLogin extends JFrame {
 			break;
 		case 1:
 			bordeUsuarioCampo.setBackground(Color.red);
+			lblErrorLogin.setForeground(Color.red);
 			lblErrorLogin.setText("El Usuario vacío");
+			break;
 		case 2:
 			bordePassCampo.setBackground(Color.red);
+			lblErrorLogin.setForeground(Color.red);
 			lblErrorLogin.setText("La Contraseña vacía");
+			break;
 		case 3:
 			bordeUsuarioCampo.setBackground(Color.red);
 			bordePassCampo.setBackground(Color.red);
 			lblErrorLogin.setText("Los campos están vacíos");
+			break;
 		case -1:
 			lblErrorLogin.setText("Usuario y/o contraseña incorrectos");
 			break;
