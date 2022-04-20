@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "fundacionlovaas",
+  "private_key_id": "df9e60e2194ace3ce4601f92d24d926c5004d36a",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzb32UyZXXMgNi\nQdDVBkYX4iBY94FwxSPazIWPSOmVaEsZVrjtEAWwvXUNQW9TzA7c+1hC1KZUTusr\nFRlGNeicB4ZfJviZMAgHCMVM/hvjHCvYJuqxSr5OD+0RxqtAbzXKrfD0+iLm0sI8\nokr17Qxvq6w6bJRN9CuPJkru2fUBe7HISFoGOpcqI4zkzJ9wzRWpiBPGsGmZ/vWQ\nVTucjpCXlCaLdHTom/5P4Ci9RnfvGHsS9zFkU7Zb9kEYyknerrendTrFF2PbCViI\nDNZXTB+A59cDovr8OyVOPefC+FGoBdWzDqJ7bVe0FPXwqYmMO82hSuczQQDWHe5T\nSR4l+bOHAgMBAAECggEAQepj/KNtCweRXKgG2iqa1y03atdJUq7o8/iL284SGNOe\nOumzt0pafMmsVTlDd0oP77fZfXt2uqPfGg1/Il6tW5wcDZpYWpXdbRAYwqbagbyY\nkqgBMS3e6PhKw2vy/xGbdiAd0zCMX7Tuq62G0f7JwcAT3caDWHupAMY1YrbonSk/\nGuZtDl/lJ+nMC6eKTZcCsXKtcCt2oN7qSSokWNkskgYPv3iH9QQAbXCw9i96kn2j\nqXiqcI/cOZdXiI91DyLeGEgCUzs+dkE3qsxMFJuUqlI6nqjyoG/Mtp8rXp5lp6si\ns57dsWGewMp/NfJb8l6MMwHbG5mPeimoU5JKyXqycQKBgQD559udUssne0RlAv+8\n9tAvtRqd8ccMTV1Jo9mwPAlVQtaijLhXW9I0eN0ot8upGYSBOFMHtjXsXvvlKK2R\nmZrkBZiCj9g3CQcTyppl/TTIpj9QG0qI3ixXtOdCMAuPWGyfGJUtd+mU1RPUpAVQ\nnDtjnIAZhNKJdjSr4FnOnlwEXwKBgQC3z7FVeT/o6AQr1Tb5lOMb8k690lmXhkUF\nUXa7kWAjTB7Yi+bAPxGiRKbeIkqpjcSnfH1EQuVvHuSBj2FBoFLhaWBSuwUeqXTS\nyARc4hM+FErr5QAkhWkJcIHfLXEZkXbXkzH0W226MJpOAh3GPM06tx1GcMLXgP2I\nRrxUhO5h2QKBgAkJi3WbAuHAoW6NtzXcLxcqk3XWwn39Zjw9gqfO4/+DVUO3lwsB\ntQ5UuJq6WtEYrSQHJ2mF+1k67h0RZYV4apOIaEWAci87Ulgy4XaCu5/t8ygwdHeS\noUPitOI93o0mg3cVan+kcHwDYJ41+EM8AyHNDQzfMsXp0mnMyTKho249AoGAbn2v\nqKSZEUUe9MZXJJImLu9p+9sNNfNlW/wLNlb+BlnElQEL9XY0AGnqMM9GOEPa+Z7w\noe7ggfp8+5CXst5P0+YHG9QGENdmPSo0zSysyn1iSAjBHDMB38W8m85yFR+G47E8\nrxmijPCYYNoO0dJMv8XBGE3CIc8NGDUFEn1R2okCgYEAqnEfRTL89Tpks2i71upE\nu0Bk6N81E/Ioi0wsagoqujbnk36rNcDWypXTrgCJeNHGfZMVLDrcOOQx58Ers/yG\nLT2OLlrItSS61YjkEeALO5rQ5+MH97pXBPtOIk3fp40opjrUq0p1clJv2123l4Xd\neRJqHnNk1BVqB66tkRa0eSY=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-oa8xe@fundacionlovaas.iam.gserviceaccount.com",
+  "client_id": "111541756740008534165",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-oa8xe%40fundacionlovaas.iam.gserviceaccount.com"
+}

@@ -8,7 +8,11 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import com.lovaas.center.controlador.Controlador;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.stereotype.Component;
+
+import com.lovaas.center.controlador.ControladorVentanas;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -20,6 +24,7 @@ import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.SwingConstants;
 import javax.swing.JTextField;
@@ -34,21 +39,21 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+@Component
 public class VentanaLogin extends JFrame {
 
 	// Funcionalidad APP
-	private Controlador controlador;
+	private ControladorVentanas controlador;
 	// Vista
 	private JPanel bg;
 	private JPanel panelDerecho;
-	private Image iconoApp;
 	private JLabel lblIniciarSesion;
 	private JLabel lblUsuario;
 	private JLabel lblContraseña;
 	private JPasswordField passwordField;
 	private JButton btnLogin;
 	private JTextField txtUsuario;
-	private Label lblBordeNegro2;
+	private Label bordePassCampo;
 	private JPanel barraAcciones;
 	private JLabel lblExit;
 	private JPanel panelIzquierdo;
@@ -57,34 +62,36 @@ public class VentanaLogin extends JFrame {
 	private JLabel lblSubtitulo;
 	// Posicion mouse
 	private int xMouse, yMouse;
+	private Label bordeUsuarioCampo;
+	private JLabel lblErrorLogin;
 
 	/*
 	 * Getter y setter del controlador
 	 */
 
-	public Controlador getControlador() {
+	public ControladorVentanas getControlador() {
 		return controlador;
 	}
 
-	public void setControlador(Controlador controlador) {
+	public void setControlador(ControladorVentanas controlador) {
 		this.controlador = controlador;
 	}
 
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					VentanaLogin frame = new VentanaLogin();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+//	public static void main(String[] args) {
+//		EventQueue.invokeLater(new Runnable() {
+//			public void run() {
+//				try {
+//					VentanaLogin frame = new VentanaLogin();
+//					frame.setVisible(true);
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+//	}
 
 	/**
 	 * Create the frame.
@@ -106,7 +113,7 @@ public class VentanaLogin extends JFrame {
 		panelIzquierdo.setBounds(0, 0, 476, 720);
 		bg.add(panelIzquierdo);
 
-		lblTitleApp = new JLabel("FUNDACIÓN ERIK LOVAAS\r\n");
+		lblTitleApp = new JLabel("FUNDACIÓN ERIK LÖVAAS\r\n");
 		lblTitleApp.setHorizontalAlignment(SwingConstants.CENTER);
 		lblTitleApp.setForeground(new Color(0, 102, 0));
 		lblTitleApp.setFont(new Font("Oswald SemiBold", Font.BOLD, 30));
@@ -198,11 +205,14 @@ public class VentanaLogin extends JFrame {
 		txtUsuario.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
+
+				bordeUsuarioCampo.setBackground(Color.gray);
+
 				if (txtUsuario.getText().equals("Ingrese su nombre de usuario")) {
 					txtUsuario.setText("");
 					txtUsuario.setForeground(Color.black);
 				}
-				if (String.valueOf(passwordField.getPassword()).equals("●●●●●●")) {
+				if (String.valueOf(passwordField.getPassword()).equals("")) {
 					passwordField.setText("●●●●●●");
 					passwordField.setForeground(Color.gray);
 				}
@@ -228,6 +238,9 @@ public class VentanaLogin extends JFrame {
 		passwordField.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
+
+				bordePassCampo.setBackground(Color.gray);
+
 				if (String.valueOf(passwordField.getPassword()).equals("●●●●●●")) {
 					passwordField.setText("");
 					passwordField.setForeground(Color.black);
@@ -252,7 +265,14 @@ public class VentanaLogin extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				String usuario = txtUsuario.getText();
 				String password = String.valueOf(passwordField.getPassword());
-				controlador.iniciarSesion(usuario, password);
+				int response = -1;
+				try {
+					response = controlador.iniciarSesion(usuario, password);
+					respuestaLogin(response);
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+
 			}
 		});
 		btnLogin.addMouseListener(new MouseAdapter() {
@@ -273,15 +293,50 @@ public class VentanaLogin extends JFrame {
 		btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		panelDerecho.add(btnLogin);
 
-		Label lblBordeNegro1 = new Label("");
-		lblBordeNegro1.setBackground(Color.GRAY);
-		lblBordeNegro1.setBounds(38, 302, 720, 2);
-		panelDerecho.add(lblBordeNegro1);
+		bordeUsuarioCampo = new Label("");
+		bordeUsuarioCampo.setBackground(Color.GRAY);
+		bordeUsuarioCampo.setBounds(38, 302, 720, 2);
+		panelDerecho.add(bordeUsuarioCampo);
 
-		lblBordeNegro2 = new Label("");
-		lblBordeNegro2.setBackground(Color.GRAY);
-		lblBordeNegro2.setBounds(38, 403, 720, 2);
-		panelDerecho.add(lblBordeNegro2);
+		bordePassCampo = new Label("");
+		bordePassCampo.setBackground(Color.GRAY);
+		bordePassCampo.setBounds(38, 403, 720, 2);
+		panelDerecho.add(bordePassCampo);
+
+		lblErrorLogin = new JLabel("");
+		lblErrorLogin.setForeground(Color.RED);
+		lblErrorLogin.setHorizontalAlignment(SwingConstants.LEFT);
+		lblErrorLogin.setFont(new Font("Roboto", Font.PLAIN, 14));
+		lblErrorLogin.setBounds(38, 521, 328, 27);
+		panelDerecho.add(lblErrorLogin);
+	}
+
+	/**
+	 * Método que recibe la respuesta del Servicio y dependiendo la respuesta
+	 * informa al usuario
+	 * 
+	 * @param response
+	 */
+	protected void respuestaLogin(int response) {
+		switch (response) {
+		case 0:
+			lblErrorLogin.setForeground(Color.green);
+			lblErrorLogin.setText("Inicio de Sesión Correcto");
+			break;
+		case 1:
+			bordeUsuarioCampo.setBackground(Color.red);
+			lblErrorLogin.setText("El Usuario vacío");
+		case 2:
+			bordePassCampo.setBackground(Color.red);
+			lblErrorLogin.setText("La Contraseña vacía");
+		case 3:
+			bordeUsuarioCampo.setBackground(Color.red);
+			bordePassCampo.setBackground(Color.red);
+			lblErrorLogin.setText("Los campos están vacíos");
+		case -1:
+			lblErrorLogin.setText("Usuario y/o contraseña incorrectos");
+			break;
+		}
 	}
 
 	/**
