@@ -1,5 +1,6 @@
 package com.lovaas.center.vista;
 
+import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
@@ -38,9 +39,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 @Component
-public class VentanaLogin extends JFrame {
+public class VentanaLogin extends JFrame implements KeyListener {
 
 	// Funcionalidad APP
 	private ControladorVentanas controlador;
@@ -78,30 +82,27 @@ public class VentanaLogin extends JFrame {
 	}
 
 	/**
-	 * Launch the application.
-	 */
-//	public static void main(String[] args) {
-//		EventQueue.invokeLater(new Runnable() {
-//			public void run() {
-//				try {
-//					VentanaLogin frame = new VentanaLogin();
-//					frame.setVisible(true);
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//	}
-
-	/**
 	 * Create the frame.
 	 */
 	public VentanaLogin() {
 		setResizable(false);
 		setUndecorated(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		addKeyListener(this); // Evento para cuando el usuario pulse la tecla enter, se pulse el botón de
+								// login
+		setFocusable(true);
 		setBounds(100, 100, 1280, 720);
 		bg = new JPanel();
+		bg.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					// lanzar evento click en boton
+					lblErrorLogin.setText("Enter pulsado");
+					System.out.println("Enter pulsado");
+				}
+			}
+		});
 		bg.setBackground(new Color(255, 255, 240));
 		bg.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(bg);
@@ -202,6 +203,14 @@ public class VentanaLogin extends JFrame {
 		panelDerecho.add(lblUsuario);
 
 		txtUsuario = new JTextField();
+		txtUsuario.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					iniciarSesion();
+				}
+			}
+		});
 		txtUsuario.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
@@ -236,6 +245,14 @@ public class VentanaLogin extends JFrame {
 		panelDerecho.add(lblContraseña);
 
 		passwordField = new JPasswordField();
+		passwordField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					iniciarSesion();
+				}
+			}
+		});
 		passwordField.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
@@ -265,16 +282,7 @@ public class VentanaLogin extends JFrame {
 		btnLogin = new JButton("ENTRAR");
 		btnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String usuario = txtUsuario.getText();
-				String password = String.valueOf(passwordField.getPassword());
-				int response = -1;
-				try {
-					response = controlador.iniciarSesion(usuario, password);
-					respuestaLogin(response);
-				} catch (InterruptedException | ExecutionException e1) {
-					e1.printStackTrace();
-				}
-
+				iniciarSesion();
 			}
 		});
 		btnLogin.addMouseListener(new MouseAdapter() {
@@ -314,6 +322,22 @@ public class VentanaLogin extends JFrame {
 	}
 
 	/**
+	 * Método que saca la información de los campos usuario, contraseña y se los
+	 * pasa al controlador para realizar la petición de autenticación
+	 */
+	protected void iniciarSesion() {
+		String usuario = txtUsuario.getText();
+		String password = String.valueOf(passwordField.getPassword());
+		int response = -1;
+		try {
+			response = controlador.iniciarSesion(usuario, password);
+			respuestaLogin(response);
+		} catch (InterruptedException | ExecutionException e1) {
+			e1.printStackTrace();
+		}
+	}
+
+	/**
 	 * Método que recibe la respuesta del Servicio y dependiendo la respuesta
 	 * informa al usuario
 	 * 
@@ -323,17 +347,19 @@ public class VentanaLogin extends JFrame {
 		switch (response) {
 		case 0:
 			lblErrorLogin.setForeground(Color.green);
+			bordePassCampo.setBackground(Color.gray);
+			bordeUsuarioCampo.setBackground(Color.gray);
 			lblErrorLogin.setText("Inicio de Sesión Correcto");
 			break;
 		case 1:
 			bordeUsuarioCampo.setBackground(Color.red);
 			lblErrorLogin.setForeground(Color.red);
-			lblErrorLogin.setText("El Usuario vacío");
+			lblErrorLogin.setText("El usuario está vacío");
 			break;
 		case 2:
 			bordePassCampo.setBackground(Color.red);
 			lblErrorLogin.setForeground(Color.red);
-			lblErrorLogin.setText("La Contraseña vacía");
+			lblErrorLogin.setText("La contraseña está vacía");
 			break;
 		case 3:
 			bordeUsuarioCampo.setBackground(Color.red);
@@ -341,6 +367,9 @@ public class VentanaLogin extends JFrame {
 			lblErrorLogin.setText("Los campos están vacíos");
 			break;
 		case -1:
+			bordeUsuarioCampo.setBackground(Color.red);
+			bordePassCampo.setBackground(Color.red);
+			lblErrorLogin.setForeground(Color.red);
 			lblErrorLogin.setText("Usuario y/o contraseña incorrectos");
 			break;
 		}
@@ -356,4 +385,22 @@ public class VentanaLogin extends JFrame {
 	protected void arrastrarMousse(int x, int y) {
 		this.setLocation(x - xMouse, y - yMouse);
 	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		System.out.println("KeyTyped: " + e.getKeyChar());
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+			System.out.println("VENTANA - ENTER");
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		System.out.println("KeyReleased: " + e.getKeyChar());
+	}
+
 }

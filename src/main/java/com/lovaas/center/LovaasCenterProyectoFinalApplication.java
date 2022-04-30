@@ -15,7 +15,7 @@ public class LovaasCenterProyectoFinalApplication implements CommandLineRunner {
 
 	@Autowired
 	private ControladorVentanas controladorVentanas;
-	@Autowired
+	@Autowired  
 	private VentanaLogin ventanaLogin;
 
 	public static void main(String[] args) {
