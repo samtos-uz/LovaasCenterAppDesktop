@@ -88,10 +88,10 @@ public class VentanaLogin extends JFrame implements KeyListener {
 		setResizable(false);
 		setUndecorated(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		addKeyListener(this); // Evento para cuando el usuario pulse la tecla enter, se pulse el botón de
-								// login
+		addKeyListener(this); // Evento para cuando el usuario pulse la tecla enter, se pulse el botón de login
 		setFocusable(true);
 		setBounds(100, 100, 1280, 720);
+		setLocationRelativeTo(null); // centrar el JFrame
 		bg = new JPanel();
 		bg.addKeyListener(new KeyAdapter() {
 			@Override

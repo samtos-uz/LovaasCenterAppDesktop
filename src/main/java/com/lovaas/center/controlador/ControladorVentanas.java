@@ -77,4 +77,8 @@ public class ControladorVentanas {
 		Ventana = ventana;
 	}
 
+	public void logout() {
+		
+	}
+
 }
