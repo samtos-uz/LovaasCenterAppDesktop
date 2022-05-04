@@ -350,6 +350,7 @@ public class VentanaLogin extends JFrame implements KeyListener {
 			bordePassCampo.setBackground(Color.gray);
 			bordeUsuarioCampo.setBackground(Color.gray);
 			lblErrorLogin.setText("Inicio de Sesión Correcto");
+			controlador.irVentanaDashboard();
 			break;
 		case 1:
 			bordeUsuarioCampo.setBackground(Color.red);

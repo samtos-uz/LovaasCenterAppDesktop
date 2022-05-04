@@ -11,6 +11,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.AncestorListener;
 
 import com.lovaas.center.controlador.ControladorVentanas;
+import com.lovaas.center.modelo.entidad.Programa;
+import com.lovaas.center.modelo.entidad.Terapeuta;
 
 import javax.swing.event.AncestorEvent;
 import javax.swing.JLabel;
@@ -19,14 +21,27 @@ import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.SwingConstants;
 import java.awt.Cursor;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
+import javax.swing.JTable;
+import javax.swing.JScrollPane;
+import javax.swing.table.DefaultTableModel;
 
+import org.springframework.stereotype.Component;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
+@Component
 public class VentanaDashboard extends JFrame {
 	// Funcionalidad APP
 	private ControladorVentanas controlador;
@@ -53,21 +68,44 @@ public class VentanaDashboard extends JFrame {
 	private JLabel lblCitas;
 	private JLabel lblExit;
 	private JPanel panelCitas;
+	private JPanel crudTerapeutas;
+	private JTable tableTerapeutas;
+	private JTable tableProgramas;
+	private JTable tableInformes;
+	private JTable tableCitas;
 
-	/**
-	 * Launch the application.
+	// Pestaña en la que nos encontramos
+	private String tabla = "terapeutas";
+	private JPanel crudProgramas;
+	private JLabel lblListadoProgramas;
+	private JScrollPane scrollPanePrg;
+	private JTextField txtNombre;
+	private JTextField txtApellidos;
+	private JTextField txtCiudad;
+	private JTextField txtTelf;
+	private JButton btnAlta;
+	private JLabel lblErrorLogin;
+	private JLabel lblNombrePrograma;
+	private JTextField txtNombrePrograma;
+	private JLabel lblFechaPrograma;
+	private JTextField txtPorcentaje;
+	private JLabel lblPorcentaje;
+	private JTextField txtFechaPrograma;
+	private JButton btnAlta_1;
+
+	/*
+	 * public static void main(String[] args) { EventQueue.invokeLater(new
+	 * Runnable() { public void run() { try { VentanaDashboard frame = new
+	 * VentanaDashboard(); frame.setVisible(true); } catch (Exception e) {
+	 * e.printStackTrace(); } } }); }
 	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					VentanaDashboard frame = new VentanaDashboard();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+
+	public ControladorVentanas getControlador() {
+		return controlador;
+	}
+
+	public void setControlador(ControladorVentanas controlador) {
+		this.controlador = controlador;
 	}
 
 	/**
@@ -84,6 +122,190 @@ public class VentanaDashboard extends JFrame {
 		bg.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(bg);
 		bg.setLayout(null);
+
+		panelTerapeutas = new JPanel();
+		panelTerapeutas.setBackground(new Color(255, 250, 240));
+		panelTerapeutas.setBounds(275, 50, 1005, 670);
+		bg.add(panelTerapeutas);
+		panelTerapeutas.setLayout(null);
+
+		crudTerapeutas = new JPanel();
+		crudTerapeutas.setBounds(49, 260, 900, 380);
+		panelTerapeutas.add(crudTerapeutas);
+		crudTerapeutas.setLayout(null);
+
+		JLabel lblListadoTerapeutas = new JLabel("Listado Terapeutas");
+		lblListadoTerapeutas.setForeground(Color.DARK_GRAY);
+		lblListadoTerapeutas.setFont(new Font("Roboto", Font.BOLD, 18));
+		lblListadoTerapeutas.setBounds(10, 10, 207, 40);
+		crudTerapeutas.add(lblListadoTerapeutas);
+
+		JScrollPane scrollPaneTrp = new JScrollPane();
+		scrollPaneTrp.setBounds(10, 60, 880, 310);
+		crudTerapeutas.add(scrollPaneTrp);
+
+		tableTerapeutas = new JTable();
+		scrollPaneTrp.setViewportView(tableTerapeutas);
+
+		JLabel lblNombre = new JLabel("Nombre");
+		lblNombre.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNombre.setForeground(Color.BLACK);
+		lblNombre.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblNombre.setBounds(81, 64, 150, 40);
+		panelTerapeutas.add(lblNombre);
+
+		JLabel lblApellidos = new JLabel("Apellidos");
+		lblApellidos.setHorizontalAlignment(SwingConstants.CENTER);
+		lblApellidos.setForeground(Color.BLACK);
+		lblApellidos.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblApellidos.setBounds(312, 64, 150, 40);
+		panelTerapeutas.add(lblApellidos);
+
+		JLabel lblCiudad = new JLabel("Ciudad");
+		lblCiudad.setHorizontalAlignment(SwingConstants.CENTER);
+		lblCiudad.setForeground(Color.BLACK);
+		lblCiudad.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblCiudad.setBounds(543, 64, 150, 40);
+		panelTerapeutas.add(lblCiudad);
+
+		JLabel lblTelefono = new JLabel("Telefono");
+		lblTelefono.setHorizontalAlignment(SwingConstants.CENTER);
+		lblTelefono.setForeground(Color.BLACK);
+		lblTelefono.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblTelefono.setBounds(774, 64, 150, 40);
+		panelTerapeutas.add(lblTelefono);
+
+		txtNombre = new JTextField();
+		txtNombre.setBounds(81, 114, 150, 40);
+		panelTerapeutas.add(txtNombre);
+		txtNombre.setColumns(10);
+
+		txtApellidos = new JTextField();
+		txtApellidos.setColumns(10);
+		txtApellidos.setBounds(312, 114, 150, 40);
+		panelTerapeutas.add(txtApellidos);
+
+		txtCiudad = new JTextField();
+		txtCiudad.setColumns(10);
+		txtCiudad.setBounds(543, 114, 150, 40);
+		panelTerapeutas.add(txtCiudad);
+
+		txtTelf = new JTextField();
+		txtTelf.setColumns(10);
+		txtTelf.setBounds(774, 114, 150, 40);
+		panelTerapeutas.add(txtTelf);
+
+		btnAlta = new JButton("ALTA");
+		btnAlta.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String nombre = txtNombre.getText();
+				String apellidos = txtApellidos.getText();
+				String ciudad = txtCiudad.getText();
+				String telf = txtTelf.getText();
+				Terapeuta terapeuta = new Terapeuta(nombre, apellidos, ciudad, telf);
+				limpiarCamposTerapeuta();
+				boolean alta = controlador.altaTerapeuta(terapeuta);
+				try {
+					tableTerapeutas.setModel(controlador.getTabla(tabla));
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnAlta.setForeground(new Color(255, 250, 240));
+		btnAlta.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnAlta.setBackground(new Color(0, 128, 0));
+		btnAlta.setBounds(427, 180, 150, 50);
+		panelTerapeutas.add(btnAlta);
+
+		lblErrorLogin = new JLabel("");
+		lblErrorLogin.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblErrorLogin.setForeground(Color.GREEN);
+		lblErrorLogin.setFont(new Font("Roboto", Font.PLAIN, 14));
+		lblErrorLogin.setBounds(621, 223, 328, 27);
+		panelTerapeutas.add(lblErrorLogin);
+
+		panelProgramas = new JPanel();
+		panelProgramas.setBackground(new Color(255, 250, 240));
+		panelProgramas.setBounds(275, 50, 1005, 670);
+		bg.add(panelProgramas);
+		panelProgramas.setLayout(null);
+
+		crudProgramas = new JPanel();
+		crudProgramas.setBounds(49, 260, 900, 380);
+		crudProgramas.setLayout(null);
+		panelProgramas.add(crudProgramas);
+
+		lblListadoProgramas = new JLabel("Listado Programas");
+		lblListadoProgramas.setForeground(Color.DARK_GRAY);
+		lblListadoProgramas.setFont(new Font("Roboto", Font.BOLD, 18));
+		lblListadoProgramas.setBounds(10, 10, 207, 40);
+		crudProgramas.add(lblListadoProgramas);
+
+		scrollPanePrg = new JScrollPane();
+		scrollPanePrg.setBounds(10, 60, 880, 310);
+		crudProgramas.add(scrollPanePrg);
+
+		tableProgramas = new JTable();
+		scrollPanePrg.setViewportView(tableProgramas);
+
+		lblNombrePrograma = new JLabel("Nombre");
+		lblNombrePrograma.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNombrePrograma.setForeground(Color.BLACK);
+		lblNombrePrograma.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblNombrePrograma.setBounds(131, 64, 150, 40);
+		panelProgramas.add(lblNombrePrograma);
+
+		txtNombrePrograma = new JTextField();
+		txtNombrePrograma.setColumns(10);
+		txtNombrePrograma.setBounds(131, 114, 150, 40);
+		panelProgramas.add(txtNombrePrograma);
+
+		lblFechaPrograma = new JLabel("Fecha realización");
+		lblFechaPrograma.setHorizontalAlignment(SwingConstants.CENTER);
+		lblFechaPrograma.setForeground(Color.BLACK);
+		lblFechaPrograma.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblFechaPrograma.setBounds(412, 64, 150, 40);
+		panelProgramas.add(lblFechaPrograma);
+
+		txtPorcentaje = new JTextField();
+		txtPorcentaje.setColumns(10);
+		txtPorcentaje.setBounds(693, 114, 180, 40);
+		panelProgramas.add(txtPorcentaje);
+
+		lblPorcentaje = new JLabel("Porcentaje realizado");
+		lblPorcentaje.setHorizontalAlignment(SwingConstants.CENTER);
+		lblPorcentaje.setForeground(Color.BLACK);
+		lblPorcentaje.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblPorcentaje.setBounds(693, 64, 180, 40);
+		panelProgramas.add(lblPorcentaje);
+
+		txtFechaPrograma = new JTextField();
+		txtFechaPrograma.setColumns(10);
+		txtFechaPrograma.setBounds(412, 114, 150, 40);
+		panelProgramas.add(txtFechaPrograma);
+
+		btnAlta_1 = new JButton("ALTA");
+		btnAlta_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String nombrePrograma = txtNombrePrograma.getText();
+				String fecha = txtFechaPrograma.getText();
+				String porcentaje = txtPorcentaje.getText();
+				limpiarCamposPrograma();
+				Programa programa = new Programa(nombrePrograma, fecha, porcentaje);
+				boolean alta = controlador.altaPrograma(programa);
+				try {
+					tableProgramas.setModel(controlador.getTabla(tabla));
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnAlta_1.setForeground(new Color(255, 250, 240));
+		btnAlta_1.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnAlta_1.setBackground(new Color(0, 128, 0));
+		btnAlta_1.setBounds(412, 180, 150, 50);
+		panelProgramas.add(btnAlta_1);
 
 		menuLateral = new MenuPanel();
 		// menuLateral.setOpaque(false);
@@ -361,16 +583,20 @@ public class VentanaDashboard extends JFrame {
 		lblMinimizar.setFont(new Font("Tahoma", Font.PLAIN, 30));
 		lblMinimizar.setBounds(1176, 0, 50, 50);
 		barraAcciones.add(lblMinimizar);
-
-		panelTerapeutas = new JPanel();
-		panelTerapeutas.setBackground(new Color(255, 250, 240));
-		panelTerapeutas.setBounds(275, 50, 1005, 670);
-		bg.add(panelTerapeutas);
-
-		panelProgramas = new JPanel();
-		panelProgramas.setBackground(Color.YELLOW);
-		panelProgramas.setBounds(275, 50, 1005, 670);
-		bg.add(panelProgramas);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowActivated(WindowEvent e) {
+				try {
+					tableTerapeutas.setModel(controlador.getTabla(tabla));
+					// tableCitas.setModel(controlador.getTabla(tabla));
+					// tableInformes.setModel(controlador.getTabla(tabla));
+					tableProgramas.setModel(controlador.getTabla(tabla));
+				} catch (Exception ex) {
+					// TODO Auto-generated catch block
+					ex.printStackTrace();
+				}
+			}
+		});
 
 		panelInformes = new JPanel();
 		panelInformes.setBackground(Color.MAGENTA);
@@ -383,10 +609,29 @@ public class VentanaDashboard extends JFrame {
 		bg.add(panelCitas);
 	}
 
+	protected void limpiarCamposPrograma() {
+		txtNombrePrograma.setText("");
+		txtFechaPrograma.setText("");
+		txtPorcentaje.setText("");
+	}
+
+	protected void limpiarCamposTerapeuta() {
+		txtNombre.setText("");
+		txtApellidos.setText("");
+		txtCiudad.setText("");
+		txtTelf.setText("");
+	}
+
 	/**
 	 * Metodo para hacer visible solo el panel de terapeutas
 	 */
 	protected void visibleTerapeutas() {
+		tabla = "terapeutas";
+		try {
+			tableProgramas.setModel(controlador.getTabla(tabla));
+		} catch (InterruptedException | ExecutionException e1) {
+			e1.printStackTrace();
+		}
 		panelTerapeutas.setVisible(true);
 		panelInformes.setVisible(false);
 		panelCitas.setVisible(false);
@@ -397,6 +642,7 @@ public class VentanaDashboard extends JFrame {
 	 * Metodo para hacer visible solo el panel de informes
 	 */
 	protected void visibleInformes() {
+		tabla = "informes";
 		panelTerapeutas.setVisible(false);
 		panelInformes.setVisible(true);
 		panelCitas.setVisible(false);
@@ -407,6 +653,7 @@ public class VentanaDashboard extends JFrame {
 	 * Metodo para hacer visible solo el panel de citas
 	 */
 	protected void visibleCitas() {
+		tabla = "citas";
 		panelTerapeutas.setVisible(false);
 		panelInformes.setVisible(false);
 		panelCitas.setVisible(true);
@@ -417,6 +664,12 @@ public class VentanaDashboard extends JFrame {
 	 * Metodo para hacer visible solo el panel de programas
 	 */
 	protected void visibleProgramas() {
+		tabla = "programas";
+		try {
+			tableProgramas.setModel(controlador.getTabla(tabla));
+		} catch (InterruptedException | ExecutionException e1) {
+			e1.printStackTrace();
+		}
 		panelTerapeutas.setVisible(false);
 		panelInformes.setVisible(false);
 		panelCitas.setVisible(false);

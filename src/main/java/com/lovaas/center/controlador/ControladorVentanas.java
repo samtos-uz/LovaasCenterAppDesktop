@@ -3,16 +3,22 @@ package com.lovaas.center.controlador;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JFrame;
+import javax.swing.table.TableModel;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import com.lovaas.center.modelo.FirebaseInitializer;
+import com.lovaas.center.modelo.entidad.Programa;
+import com.lovaas.center.modelo.entidad.Terapeuta;
+import com.lovaas.center.vista.VentanaDashboard;
+import com.lovaas.center.vista.VentanaLogin;
 
 @Controller
 public class ControladorVentanas {
 
-	private JFrame Ventana;
+	private VentanaLogin ventanaLogin;
+	private VentanaDashboard ventanaDashboard;
 	@Autowired
 	private FirebaseController fbc;
 
@@ -69,16 +75,53 @@ public class ControladorVentanas {
 		return response;
 	}
 
-	public JFrame getVentana() {
-		return Ventana;
+	public VentanaLogin getVentanaLogin() {
+		return ventanaLogin;
 	}
 
-	public void setVentana(JFrame ventana) {
-		Ventana = ventana;
+	public void setVentanaLogin(VentanaLogin ventanaLogin) {
+		this.ventanaLogin = ventanaLogin;
+	}
+
+	public VentanaDashboard getVentanaDashboard() {
+		return ventanaDashboard;
+	}
+
+	public void setVentanaDashboard(VentanaDashboard ventanaDashboard) {
+		this.ventanaDashboard = ventanaDashboard;
+	}
+
+	/**
+	 * Metodo que pide el modelo de datos a la {@link FirebaseController}
+	 * 
+	 * @param nombreTabla el nombre de la tabla ("coleccion")
+	 * @return la tabla convertida de la coleccion
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	public TableModel getTabla(String nombreTabla) throws InterruptedException, ExecutionException {
+		TableModel model = fbc.getTabla(nombreTabla);
+		return model;
+	}
+
+	public boolean altaTerapeuta(Terapeuta terapeuta) {
+		boolean alta = fbc.altaTerapeuta(terapeuta);
+		return alta;
+	}
+
+	public boolean altaPrograma(Programa programa) {
+		boolean alta = fbc.altaPrograma(programa);
+		return alta;
+	}
+
+	public void irVentanaDashboard() {
+		ventanaLogin.setVisible(false);
+		ventanaDashboard.setVisible(true);
 	}
 
 	public void logout() {
-		
+		ventanaDashboard.setVisible(false);		
+		ventanaLogin.setVisible(true);
 	}
 
 }
