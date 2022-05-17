@@ -46,7 +46,6 @@ public class LovaasCenterProyectoFinalApplication implements CommandLineRunner {
 			public void run() {
 				try {
 					ventanaLogin.setVisible(true);
-					// ventanaDashboard.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
