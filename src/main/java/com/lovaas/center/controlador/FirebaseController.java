@@ -20,6 +20,7 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.lovaas.center.modelo.FirebaseInitializer;
@@ -185,6 +186,8 @@ public class FirebaseController {
 		try {
 			String id = addedDocRef.get().getId();
 			System.out.println("Added document with ID: " + id);
+			terapeuta.setId(id);// asigno id para futura actualizacion
+			System.out.println(terapeuta.toString());
 			if (!id.isEmpty())
 				alta = true;
 		} catch (InterruptedException e) {
@@ -212,6 +215,8 @@ public class FirebaseController {
 		try {
 			String id = addedDocRef.get().getId();
 			System.out.println("Added document with ID: " + id);
+			programa.setId(id);// asigno id para futura actualizacion
+			System.out.println(programa.toString());
 			if (!id.isEmpty())
 				alta = true;
 		} catch (InterruptedException e) {
@@ -222,6 +227,138 @@ public class FirebaseController {
 			e.printStackTrace();
 		}
 		return alta;
+	}
+
+	/**
+	 * Método para actualizar un terapeuta, si tiene un id asignado significa que ya
+	 * está dado de alta, por tanto se puede actualizar. Si no se dará de alta
+	 * automáticamente
+	 * 
+	 * @param terapeuta
+	 * @return <code>true</code> en caso de se haya actualizado o añadido
+	 *         correctamente, <code>false</code> en caso contrario
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public boolean actualizarTerapeuta(Terapeuta terapeuta) throws InterruptedException, ExecutionException {
+		boolean update = false;
+
+		if (terapeuta.getId() != null) {
+			// Update an existing document
+			DocumentReference docRef = db.getFirebase().collection("terapeutas").document(terapeuta.getId());
+
+			// (async) Update one field
+			Map<String, Object> camposTerapeuta = new HashMap<String, Object>();
+			camposTerapeuta.put("nombre", terapeuta.getNombre());
+			camposTerapeuta.put("apellidos", terapeuta.getApellidos());
+			camposTerapeuta.put("ciudad", terapeuta.getCiudad());
+			camposTerapeuta.put("telefono", terapeuta.getTelefono());
+			ApiFuture<WriteResult> future1 = docRef.update(camposTerapeuta);
+
+			WriteResult result = future1.get();
+			System.out.println("Write result: " + result);
+			update = true;
+		} else {
+			update = altaTerapeuta(terapeuta);
+		}
+
+		return update;
+	}
+
+	public boolean actualizarPrograma(Programa programa) throws InterruptedException, ExecutionException {
+		boolean update = false;
+
+		if (programa.getId() != null) {
+			// Update an existing document
+			DocumentReference docRef = db.getFirebase().collection("programas").document(programa.getId());
+
+			// (async) Update one field
+			Map<String, Object> camposPrograma = new HashMap<String, Object>();
+			camposPrograma.put("nombre", programa.getNombre());
+			camposPrograma.put("fechaRealizacion", programa.getFechaRealizacion());
+			camposPrograma.put("porcentajeRealizado", programa.getPorcentajeRealizado());
+			ApiFuture<WriteResult> future1 = docRef.update(camposPrograma);
+
+			WriteResult result = future1.get();
+			System.out.println("Write result: " + result);
+			update = true;
+		} else {
+			update = altaPrograma(programa);
+		}
+
+		return update;
+	}
+
+	/**
+	 * Metodo que busca en BD si existe dicha entidad, si existe le asigna su ida
+	 * para una futura actualización
+	 * 
+	 * @param terapeutaActual
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	public void obtenerIdTerapeuta(Terapeuta terapeutaActual) throws InterruptedException, ExecutionException {
+		// Traer documentos con coincidencia de nombre
+		ApiFuture<QuerySnapshot> future = db.getFirebase().collection("terapeutas")
+				.whereEqualTo("nombre", terapeutaActual.getNombre()).get();
+		// future.get() blocks on response
+		List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+		for (DocumentSnapshot document : documents) {
+			System.out.println(document.getId() + " => " + document.toObject(Terapeuta.class));
+			Terapeuta terapeutaBD = document.toObject(Terapeuta.class);
+			// Comprobacion de apellidos para confirmar la igualdad de los objetos ( Nombre,
+			// Apellidos = Nombre, Apellidos)
+			if (terapeutaBD.getApellidos().matches(terapeutaActual.getApellidos())) {
+				terapeutaActual.setId(document.getId());
+			}
+		}
+	}
+
+	public void obtenerIdPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
+		// Traer documentos con coincidencia de nombre
+		ApiFuture<QuerySnapshot> future = db.getFirebase().collection("programas")
+				.whereEqualTo("nombre", programaActual.getNombre()).get();
+		// future.get() blocks on response
+		List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+		for (DocumentSnapshot document : documents) {
+			System.out.println(document.getId() + " => " + document.toObject(Terapeuta.class));
+			Programa programaBD = document.toObject(Programa.class);
+			// Comprobacion de apellidos para confirmar la igualdad de los objetos
+			if (programaBD.getFechaRealizacion().matches(programaActual.getFechaRealizacion())) {
+				programaActual.setId(document.getId());
+			}
+		}
+	}
+
+	/**
+	 * Elimina un terapeuta de la coleccion en Firebase
+	 * 
+	 * @param terapeutaActual
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	public void eliminarTerapeuta(Terapeuta terapeutaActual) throws InterruptedException, ExecutionException {
+		// asynchronously delete a document
+		ApiFuture<WriteResult> writeResult = db.getFirebase().collection("terapeutas").document(terapeutaActual.getId())
+				.delete();
+		// ...
+		System.out.println("Update time : " + writeResult.get().getUpdateTime());
+
+	}
+
+	/**
+	 * Elmina un programa de la coleccion en Firebase
+	 * 
+	 * @param programaActual
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	public void eliminarPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
+		// asynchronously delete a document
+		ApiFuture<WriteResult> writeResult = db.getFirebase().collection("programas").document(programaActual.getId())
+				.delete();
+		// ...
+		System.out.println("Update time : " + writeResult.get().getUpdateTime());
 	}
 
 }

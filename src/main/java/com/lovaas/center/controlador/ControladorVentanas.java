@@ -124,4 +124,30 @@ public class ControladorVentanas {
 		ventanaLogin.setVisible(true);
 	}
 
+	public boolean actualizarTerapeuta(Terapeuta terapeuta) throws InterruptedException, ExecutionException {
+		boolean update = fbc.actualizarTerapeuta(terapeuta);
+		return update;
+	}
+
+	public boolean actualizarPrograma(Programa programa) throws InterruptedException, ExecutionException {
+		boolean update = fbc.actualizarPrograma(programa);
+		return update;
+	}
+
+	public void obtenerIdTerapeuta(Terapeuta terapeutaActual) throws InterruptedException, ExecutionException {
+		fbc.obtenerIdTerapeuta(terapeutaActual);
+	}
+
+	public void obtenerIdPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
+		fbc.obtenerIdPrograma(programaActual);
+	}
+
+	public void eliminarTerapeuta(Terapeuta terapeutaActual) throws InterruptedException, ExecutionException {
+		fbc.eliminarTerapeuta(terapeutaActual);
+	}
+
+	public void borrarPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
+		fbc.eliminarPrograma(programaActual);
+	}
+
 }

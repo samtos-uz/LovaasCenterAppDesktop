@@ -35,6 +35,7 @@ import javax.swing.JTable;
 import javax.swing.JScrollPane;
 import javax.swing.table.DefaultTableModel;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import javax.swing.JTextField;
 import javax.swing.JButton;
@@ -51,6 +52,11 @@ public class VentanaDashboard extends JFrame {
 	// para los iconos
 	private Path currentRelativePath;
 	private String rutaImg;
+	// Entidades
+	@Autowired
+	private Terapeuta terapeutaActual;
+	@Autowired
+	private Programa programaActual;
 	// Posicion mouse
 	private int xMouse, yMouse;
 	private JPanel panelTerapeutas;
@@ -75,7 +81,7 @@ public class VentanaDashboard extends JFrame {
 	private JTable tableCitas;
 
 	// Pestaña en la que nos encontramos
-	private String tabla = "terapeutas";
+	private String nombreTabla = "terapeutas";
 	private JPanel crudProgramas;
 	private JLabel lblListadoProgramas;
 	private JScrollPane scrollPanePrg;
@@ -92,6 +98,9 @@ public class VentanaDashboard extends JFrame {
 	private JLabel lblPorcentaje;
 	private JTextField txtFechaPrograma;
 	private JButton btnAlta_1;
+	private JButton btnActualizarTerapeuta;
+	private JButton btnActualizarPrograma;
+	private JButton btnBorrarTerapeuta;
 
 	/*
 	 * public static void main(String[] args) { EventQueue.invokeLater(new
@@ -123,6 +132,75 @@ public class VentanaDashboard extends JFrame {
 		setContentPane(bg);
 		bg.setLayout(null);
 
+		JPanel barraAcciones = new JPanel();
+		barraAcciones.setBorder(new MatteBorder(0, 0, 2, 0, (Color) new Color(192, 192, 192)));
+		barraAcciones.addMouseMotionListener(new MouseMotionAdapter() {
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				arrastrarMousse(e.getXOnScreen(), e.getYOnScreen());
+			}
+		});
+		barraAcciones.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				xMouse = e.getX();
+				yMouse = e.getY();
+			}
+		});
+		barraAcciones.setLayout(null);
+		barraAcciones.setBackground(new Color(255, 250, 240));
+		barraAcciones.setBounds(0, 0, 1280, 50);
+		bg.add(barraAcciones);
+
+		lblExit = new JLabel("X");
+		lblExit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		lblExit.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				System.exit(0);
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				lblExit.setForeground(Color.red);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				lblExit.setForeground(Color.black);
+			}
+		});
+		lblExit.setHorizontalAlignment(SwingConstants.CENTER);
+		lblExit.setForeground(Color.BLACK);
+		lblExit.setFont(new Font("Tahoma", Font.PLAIN, 30));
+		lblExit.setBounds(1230, 0, 50, 50);
+		barraAcciones.add(lblExit);
+
+		JLabel lblMinimizar = new JLabel("_");
+		lblMinimizar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		lblMinimizar.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				setExtendedState(ICONIFIED); // Minimiza la ventana
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				lblMinimizar.setForeground(Color.gray);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				lblMinimizar.setForeground(Color.black);
+			}
+		});
+		lblMinimizar.setVerticalAlignment(SwingConstants.TOP);
+		lblMinimizar.setHorizontalAlignment(SwingConstants.CENTER);
+		lblMinimizar.setForeground(Color.BLACK);
+		lblMinimizar.setFont(new Font("Tahoma", Font.PLAIN, 30));
+		lblMinimizar.setBounds(1176, 0, 50, 50);
+		barraAcciones.add(lblMinimizar);
+
 		panelTerapeutas = new JPanel();
 		panelTerapeutas.setBackground(new Color(255, 250, 240));
 		panelTerapeutas.setBounds(275, 50, 1005, 670);
@@ -145,6 +223,26 @@ public class VentanaDashboard extends JFrame {
 		crudTerapeutas.add(scrollPaneTrp);
 
 		tableTerapeutas = new JTable();
+		tableTerapeutas.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				int fila = tableTerapeutas.getSelectedRow();
+				txtNombre.setText((String) tableTerapeutas.getValueAt(fila, 3));
+				txtApellidos.setText((String) tableTerapeutas.getValueAt(fila, 0));
+				txtCiudad.setText((String) tableTerapeutas.getValueAt(fila, 1));
+				txtTelf.setText((String) tableTerapeutas.getValueAt(fila, 2));
+				// Setteo el objeto actual para obtener su id para su posible actualizacion
+				terapeutaActual.setNombre(txtNombre.getText());
+				terapeutaActual.setApellidos(txtApellidos.getText());
+				terapeutaActual.setCiudad(txtCiudad.getText());
+				terapeutaActual.setTelefono(txtTelf.getText());
+				try {
+					controlador.obtenerIdTerapeuta(terapeutaActual);
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 		scrollPaneTrp.setViewportView(tableTerapeutas);
 
 		JLabel lblNombre = new JLabel("Nombre");
@@ -195,7 +293,7 @@ public class VentanaDashboard extends JFrame {
 		txtTelf.setBounds(774, 114, 150, 40);
 		panelTerapeutas.add(txtTelf);
 
-		btnAlta = new JButton("ALTA");
+		btnAlta = new JButton("Alta");
 		btnAlta.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String nombre = txtNombre.getText();
@@ -206,7 +304,7 @@ public class VentanaDashboard extends JFrame {
 				limpiarCamposTerapeuta();
 				boolean alta = controlador.altaTerapeuta(terapeuta);
 				try {
-					tableTerapeutas.setModel(controlador.getTabla(tabla));
+					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
 				} catch (InterruptedException | ExecutionException e1) {
 					e1.printStackTrace();
 				}
@@ -215,7 +313,7 @@ public class VentanaDashboard extends JFrame {
 		btnAlta.setForeground(new Color(255, 250, 240));
 		btnAlta.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
 		btnAlta.setBackground(new Color(0, 128, 0));
-		btnAlta.setBounds(427, 180, 150, 50);
+		btnAlta.setBounds(262, 176, 150, 50);
 		panelTerapeutas.add(btnAlta);
 
 		lblErrorLogin = new JLabel("");
@@ -224,6 +322,51 @@ public class VentanaDashboard extends JFrame {
 		lblErrorLogin.setFont(new Font("Roboto", Font.PLAIN, 14));
 		lblErrorLogin.setBounds(621, 223, 328, 27);
 		panelTerapeutas.add(lblErrorLogin);
+
+		btnActualizarTerapeuta = new JButton("Actualizar");
+		btnActualizarTerapeuta.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String nombre = txtNombre.getText();
+				String apellidos = txtApellidos.getText();
+				String ciudad = txtCiudad.getText();
+				String telf = txtTelf.getText();
+				// Actualizamos los datos del objeto
+				terapeutaActual.setNombre(nombre);
+				terapeutaActual.setApellidos(apellidos);
+				terapeutaActual.setCiudad(ciudad);
+				terapeutaActual.setTelefono(telf);
+				limpiarCamposTerapeuta();
+				try {
+					boolean update = controlador.actualizarTerapeuta(terapeutaActual);// Actualizamos en bd
+					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnActualizarTerapeuta.setForeground(new Color(255, 250, 240));
+		btnActualizarTerapeuta.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnActualizarTerapeuta.setBackground(Color.GRAY);
+		btnActualizarTerapeuta.setBounds(436, 176, 150, 50);
+		panelTerapeutas.add(btnActualizarTerapeuta);
+
+		btnBorrarTerapeuta = new JButton("Borrar");
+		btnBorrarTerapeuta.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				limpiarCamposTerapeuta();
+				try {
+					controlador.eliminarTerapeuta(terapeutaActual);
+					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnBorrarTerapeuta.setForeground(new Color(255, 250, 240));
+		btnBorrarTerapeuta.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnBorrarTerapeuta.setBackground(Color.RED);
+		btnBorrarTerapeuta.setBounds(607, 176, 150, 50);
+		panelTerapeutas.add(btnBorrarTerapeuta);
 
 		panelProgramas = new JPanel();
 		panelProgramas.setBackground(new Color(255, 250, 240));
@@ -247,6 +390,24 @@ public class VentanaDashboard extends JFrame {
 		crudProgramas.add(scrollPanePrg);
 
 		tableProgramas = new JTable();
+		tableProgramas.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				int fila = tableProgramas.getSelectedRow();
+				txtNombrePrograma.setText((String) tableProgramas.getValueAt(fila, 2));
+				txtFechaPrograma.setText((String) tableProgramas.getValueAt(fila, 0));
+				txtPorcentaje.setText((String) tableProgramas.getValueAt(fila, 1));
+				// settear objeto con los nuevos datos
+				programaActual.setNombre(txtNombrePrograma.getText());
+				programaActual.setFechaRealizacion(txtFechaPrograma.getText());
+				programaActual.setPorcentajeRealizado(txtPorcentaje.getText());
+				try {
+					controlador.obtenerIdPrograma(programaActual);
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 		scrollPanePrg.setViewportView(tableProgramas);
 
 		lblNombrePrograma = new JLabel("Nombre");
@@ -280,12 +441,7 @@ public class VentanaDashboard extends JFrame {
 		lblPorcentaje.setBounds(693, 64, 180, 40);
 		panelProgramas.add(lblPorcentaje);
 
-		txtFechaPrograma = new JTextField();
-		txtFechaPrograma.setColumns(10);
-		txtFechaPrograma.setBounds(412, 114, 150, 40);
-		panelProgramas.add(txtFechaPrograma);
-
-		btnAlta_1 = new JButton("ALTA");
+		btnAlta_1 = new JButton("Alta");
 		btnAlta_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String nombrePrograma = txtNombrePrograma.getText();
@@ -295,7 +451,7 @@ public class VentanaDashboard extends JFrame {
 				Programa programa = new Programa(nombrePrograma, fecha, porcentaje);
 				boolean alta = controlador.altaPrograma(programa);
 				try {
-					tableProgramas.setModel(controlador.getTabla(tabla));
+					tableProgramas.setModel(controlador.getTabla(nombreTabla));
 				} catch (InterruptedException | ExecutionException e1) {
 					e1.printStackTrace();
 				}
@@ -304,8 +460,55 @@ public class VentanaDashboard extends JFrame {
 		btnAlta_1.setForeground(new Color(255, 250, 240));
 		btnAlta_1.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
 		btnAlta_1.setBackground(new Color(0, 128, 0));
-		btnAlta_1.setBounds(412, 180, 150, 50);
+		btnAlta_1.setBounds(262, 176, 150, 50);
 		panelProgramas.add(btnAlta_1);
+
+		btnActualizarPrograma = new JButton("Actualizar");
+		btnActualizarPrograma.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String nombrePrograma = txtNombrePrograma.getText();
+				String fecha = txtFechaPrograma.getText();
+				String porcentaje = txtPorcentaje.getText();
+				programaActual.setNombre(nombrePrograma);
+				programaActual.setFechaRealizacion(fecha);
+				programaActual.setPorcentajeRealizado(porcentaje);
+				limpiarCamposPrograma();
+				try {
+					boolean update = controlador.actualizarPrograma(programaActual);
+					tableProgramas.setModel(controlador.getTabla(nombreTabla));
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+
+		JButton btnBorrarPrograma = new JButton("Borrar");
+		btnBorrarPrograma.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				limpiarCamposPrograma();
+				try {
+					controlador.borrarPrograma(programaActual);
+					tableProgramas.setModel(controlador.getTabla(nombreTabla));
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnBorrarPrograma.setForeground(new Color(255, 250, 240));
+		btnBorrarPrograma.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnBorrarPrograma.setBackground(Color.RED);
+		btnBorrarPrograma.setBounds(607, 176, 150, 50);
+		panelProgramas.add(btnBorrarPrograma);
+		btnActualizarPrograma.setForeground(new Color(255, 250, 240));
+		btnActualizarPrograma.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnActualizarPrograma.setBackground(Color.GRAY);
+		btnActualizarPrograma.setBounds(436, 176, 150, 50);
+		panelProgramas.add(btnActualizarPrograma);
+
+		txtFechaPrograma = new JTextField();
+		txtFechaPrograma.setColumns(10);
+		txtFechaPrograma.setBounds(412, 114, 150, 40);
+		panelProgramas.add(txtFechaPrograma);
 
 		menuLateral = new MenuPanel();
 		// menuLateral.setOpaque(false);
@@ -514,83 +717,12 @@ public class VentanaDashboard extends JFrame {
 		iconLogout.setIcon(logoutIcon);
 		iconLogout.setBounds(20, 627, 30, 30);
 		menuLateral.add(iconLogout);
-
-		JPanel barraAcciones = new JPanel();
-		barraAcciones.setBorder(new MatteBorder(0, 0, 2, 0, (Color) new Color(192, 192, 192)));
-		barraAcciones.addMouseMotionListener(new MouseMotionAdapter() {
-			@Override
-			public void mouseDragged(MouseEvent e) {
-				arrastrarMousse(e.getXOnScreen(), e.getYOnScreen());
-			}
-		});
-		barraAcciones.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				xMouse = e.getX();
-				yMouse = e.getY();
-			}
-		});
-		barraAcciones.setLayout(null);
-		barraAcciones.setBackground(new Color(255, 250, 240));
-		barraAcciones.setBounds(0, 0, 1280, 50);
-		bg.add(barraAcciones);
-
-		lblExit = new JLabel("X");
-		lblExit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		lblExit.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				System.exit(0);
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				lblExit.setForeground(Color.red);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				lblExit.setForeground(Color.black);
-			}
-		});
-		lblExit.setHorizontalAlignment(SwingConstants.CENTER);
-		lblExit.setForeground(Color.BLACK);
-		lblExit.setFont(new Font("Tahoma", Font.PLAIN, 30));
-		lblExit.setBounds(1230, 0, 50, 50);
-		barraAcciones.add(lblExit);
-
-		JLabel lblMinimizar = new JLabel("_");
-		lblMinimizar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		lblMinimizar.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				setExtendedState(ICONIFIED); // Minimiza la ventana
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				lblMinimizar.setForeground(Color.gray);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				lblMinimizar.setForeground(Color.black);
-			}
-		});
-		lblMinimizar.setVerticalAlignment(SwingConstants.TOP);
-		lblMinimizar.setHorizontalAlignment(SwingConstants.CENTER);
-		lblMinimizar.setForeground(Color.BLACK);
-		lblMinimizar.setFont(new Font("Tahoma", Font.PLAIN, 30));
-		lblMinimizar.setBounds(1176, 0, 50, 50);
-		barraAcciones.add(lblMinimizar);
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowActivated(WindowEvent e) {
 				try {
-					tableTerapeutas.setModel(controlador.getTabla(tabla));
-					// tableCitas.setModel(controlador.getTabla(tabla));
-					// tableInformes.setModel(controlador.getTabla(tabla));
-					tableProgramas.setModel(controlador.getTabla(tabla));
+					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
+					tableProgramas.setModel(controlador.getTabla(nombreTabla));
 				} catch (Exception ex) {
 					// TODO Auto-generated catch block
 					ex.printStackTrace();
@@ -626,9 +758,9 @@ public class VentanaDashboard extends JFrame {
 	 * Metodo para hacer visible solo el panel de terapeutas
 	 */
 	protected void visibleTerapeutas() {
-		tabla = "terapeutas";
+		nombreTabla = "terapeutas";
 		try {
-			tableProgramas.setModel(controlador.getTabla(tabla));
+			tableProgramas.setModel(controlador.getTabla(nombreTabla));
 		} catch (InterruptedException | ExecutionException e1) {
 			e1.printStackTrace();
 		}
@@ -642,7 +774,7 @@ public class VentanaDashboard extends JFrame {
 	 * Metodo para hacer visible solo el panel de informes
 	 */
 	protected void visibleInformes() {
-		tabla = "informes";
+		nombreTabla = "informes";
 		panelTerapeutas.setVisible(false);
 		panelInformes.setVisible(true);
 		panelCitas.setVisible(false);
@@ -653,7 +785,7 @@ public class VentanaDashboard extends JFrame {
 	 * Metodo para hacer visible solo el panel de citas
 	 */
 	protected void visibleCitas() {
-		tabla = "citas";
+		nombreTabla = "citas";
 		panelTerapeutas.setVisible(false);
 		panelInformes.setVisible(false);
 		panelCitas.setVisible(true);
@@ -664,9 +796,9 @@ public class VentanaDashboard extends JFrame {
 	 * Metodo para hacer visible solo el panel de programas
 	 */
 	protected void visibleProgramas() {
-		tabla = "programas";
+		nombreTabla = "programas";
 		try {
-			tableProgramas.setModel(controlador.getTabla(tabla));
+			tableProgramas.setModel(controlador.getTabla(nombreTabla));
 		} catch (InterruptedException | ExecutionException e1) {
 			e1.printStackTrace();
 		}

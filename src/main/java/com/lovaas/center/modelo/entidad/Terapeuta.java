@@ -1,6 +1,12 @@
 package com.lovaas.center.modelo.entidad;
 
+import org.springframework.stereotype.Component;
+
+import com.google.cloud.firestore.annotation.Exclude;
+
+@Component
 public class Terapeuta {
+	private String id;
 	private String nombre;
 	private String apellidos;
 	private String ciudad;
@@ -48,10 +54,19 @@ public class Terapeuta {
 		this.telefono = telefono;
 	}
 
+	@Exclude
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
 	@Override
 	public String toString() {
-		return "Terapeuta [nombre=" + nombre + ", apellidos=" + apellidos + ", ciudad=" + ciudad + ", telefono="
-				+ telefono + "]";
+		return "Terapeuta [id=" + id + ", nombre=" + nombre + ", apellidos=" + apellidos + ", ciudad=" + ciudad
+				+ ", telefono=" + telefono + "]";
 	}
 
 }
