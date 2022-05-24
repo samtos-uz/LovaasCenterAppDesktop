@@ -181,20 +181,14 @@ public class FirebaseController {
 	 */
 	public boolean altaTerapeuta(Terapeuta terapeuta) {
 		boolean alta = false;
-		ApiFuture<DocumentReference> addedDocRef = db.getFirebase().collection("terapeutas").add(terapeuta);
-		// future.get() blocks on response
+		String idDoc = terapeuta.getNombre() + terapeuta.getApellidos();
+		//Peticion a bd (alta)
+		ApiFuture<WriteResult> addedDocRef = db.getFirebase().collection("terapeutas").document(idDoc).set(terapeuta);
+		
 		try {
-			String id = addedDocRef.get().getId();
-			System.out.println("Added document with ID: " + id);
-			terapeuta.setId(id);// asigno id para futura actualizacion
-			System.out.println(terapeuta.toString());
-			if (!id.isEmpty())
-				alta = true;
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
+			System.out.println("update time: " + addedDocRef.get().getUpdateTime());
+			alta = true;
+		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 		}
 		return alta;

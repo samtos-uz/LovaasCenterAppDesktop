@@ -90,7 +90,7 @@ public class VentanaDashboard extends JFrame {
 	private JTextField txtCiudad;
 	private JTextField txtTelf;
 	private JButton btnAlta;
-	private JLabel lblErrorLogin;
+	private JLabel lblRespuestaTerapeuta;
 	private JLabel lblNombrePrograma;
 	private JTextField txtNombrePrograma;
 	private JLabel lblFechaPrograma;
@@ -302,12 +302,13 @@ public class VentanaDashboard extends JFrame {
 				String telf = txtTelf.getText();
 				Terapeuta terapeuta = new Terapeuta(nombre, apellidos, ciudad, telf);
 				limpiarCamposTerapeuta();
-				boolean alta = controlador.altaTerapeuta(terapeuta);
+				int alta = controlador.altaTerapeuta(terapeuta);
 				try {
 					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
 				} catch (InterruptedException | ExecutionException e1) {
 					e1.printStackTrace();
 				}
+				respuestaAltaTerapeuta(alta);
 			}
 		});
 		btnAlta.setForeground(new Color(255, 250, 240));
@@ -316,12 +317,12 @@ public class VentanaDashboard extends JFrame {
 		btnAlta.setBounds(262, 176, 150, 50);
 		panelTerapeutas.add(btnAlta);
 
-		lblErrorLogin = new JLabel("");
-		lblErrorLogin.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblErrorLogin.setForeground(Color.GREEN);
-		lblErrorLogin.setFont(new Font("Roboto", Font.PLAIN, 14));
-		lblErrorLogin.setBounds(621, 223, 328, 27);
-		panelTerapeutas.add(lblErrorLogin);
+		lblRespuestaTerapeuta = new JLabel("");
+		lblRespuestaTerapeuta.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblRespuestaTerapeuta.setForeground(Color.GREEN);
+		lblRespuestaTerapeuta.setFont(new Font("Roboto", Font.PLAIN, 14));
+		lblRespuestaTerapeuta.setBounds(621, 230, 328, 27);
+		panelTerapeutas.add(lblRespuestaTerapeuta);
 
 		btnActualizarTerapeuta = new JButton("Actualizar");
 		btnActualizarTerapeuta.addActionListener(new ActionListener() {
@@ -739,6 +740,26 @@ public class VentanaDashboard extends JFrame {
 		panelCitas.setBackground(Color.BLUE);
 		panelCitas.setBounds(276, 50, 1005, 670);
 		bg.add(panelCitas);
+	}
+
+	/**
+	 * Metodo para informar el usuario sobre su petición de alta en Terapeutas
+	 * 
+	 * @param alta
+	 */
+	protected void respuestaAltaTerapeuta(int alta) {
+		switch (alta) {
+		case 0:
+			lblRespuestaTerapeuta.setText("Error al dar de alta");
+			break;
+		case 1:
+			lblRespuestaTerapeuta.setText("Alta correctamente");
+			break;
+		case -1:
+			lblRespuestaTerapeuta.setText("Nombre o Apellidos no pueden estar vacíos");
+			break;
+
+		}
 	}
 
 	protected void limpiarCamposPrograma() {

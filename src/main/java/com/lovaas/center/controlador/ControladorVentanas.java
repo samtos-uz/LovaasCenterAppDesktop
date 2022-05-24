@@ -104,9 +104,24 @@ public class ControladorVentanas {
 		return model;
 	}
 
-	public boolean altaTerapeuta(Terapeuta terapeuta) {
-		boolean alta = fbc.altaTerapeuta(terapeuta);
-		return alta;
+	/**
+	 * Método para llamar al modelo de la aplicacion y dar de alta un terapeuta en
+	 * la bd
+	 * 
+	 * @param terapeuta objeto de tipo {@link Terapeuta}
+	 * @return 1 si se da de alta, 0 si ocurrio un error al darse de alta, -1 en
+	 *         caso de que esté vacío Nombre o Apellidos del terapeuta
+	 */
+
+	public int altaTerapeuta(Terapeuta terapeuta) {
+		int response = 0;
+		// Verificación de campos para poder construir el id.
+		if (terapeuta.getNombre().isEmpty() || terapeuta.getApellidos().isEmpty()) {
+			response = -1;
+		}
+		response = fbc.altaTerapeuta(terapeuta) ? 1 : 0; // si se da de alta correctamente devuelve 1, 0 en caso
+															// contrario
+		return response;
 	}
 
 	public boolean altaPrograma(Programa programa) {
@@ -120,7 +135,7 @@ public class ControladorVentanas {
 	}
 
 	public void logout() {
-		ventanaDashboard.setVisible(false);		
+		ventanaDashboard.setVisible(false);
 		ventanaLogin.setVisible(true);
 	}
 
