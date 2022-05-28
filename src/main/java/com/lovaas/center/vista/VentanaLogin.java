@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.stereotype.Component;
@@ -47,6 +48,7 @@ import java.awt.event.KeyListener;
 public class VentanaLogin extends JFrame implements KeyListener {
 
 	// Funcionalidad APP
+	@Autowired
 	private ControladorVentanas controlador;
 	// Vista
 	private JPanel bg;

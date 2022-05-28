@@ -1,13 +1,18 @@
 package com.lovaas.center.controlador;
 
+import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
+import javax.swing.ListModel;
 import javax.swing.table.TableModel;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import com.fasterxml.jackson.databind.ser.impl.MapEntrySerializer;
 import com.lovaas.center.modelo.FirebaseInitializer;
 import com.lovaas.center.modelo.entidad.Programa;
 import com.lovaas.center.modelo.entidad.Terapeuta;
@@ -21,6 +26,9 @@ public class ControladorVentanas {
 	private VentanaDashboard ventanaDashboard;
 	@Autowired
 	private FirebaseController fbc;
+
+	public ControladorVentanas() {
+	}
 
 	/**
 	 * Método de login
@@ -163,6 +171,29 @@ public class ControladorVentanas {
 
 	public void borrarPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
 		fbc.eliminarPrograma(programaActual);
+	}
+
+	public ListModel<String> getListModel(String nombreTabla) throws InterruptedException, ExecutionException {
+		ListModel<String> listModel = fbc.getListModel(nombreTabla);
+		return listModel;
+	}
+
+	public void obtenerUnidades(Programa programaActual) throws InterruptedException, ExecutionException {
+		fbc.obtenerUnidades(programaActual);
+	}
+
+	/**
+	 * Genera el modelo de JlistUnidades a partir de un {@link TreeMap} pasado por parametro
+	 * @param unidades
+	 * @return
+	 */
+	public ListModel generarModeloUnidades(TreeMap<String, Object> unidades) {
+		DefaultListModel<String> model = new DefaultListModel<String>();
+		for (Entry<String, Object> par : unidades.entrySet()) {
+			String unidadCompleta = par.getKey() + ": " + par.getValue();
+			model.addElement(unidadCompleta);
+		}
+		return model;
 	}
 
 }

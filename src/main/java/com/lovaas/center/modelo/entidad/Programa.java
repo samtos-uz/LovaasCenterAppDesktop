@@ -1,23 +1,16 @@
 package com.lovaas.center.modelo.entidad;
 
+import java.util.TreeMap;
+
 import org.springframework.stereotype.Component;
 
-import com.google.cloud.firestore.annotation.Exclude;
 
 @Component
 public class Programa {
-	private String id;
 	private String nombre;
-	private String fechaRealizacion;
-	private String porcentajeRealizado;
+	private TreeMap<String, Object> unidades;
 
 	public Programa() {
-	}
-
-	public Programa(String nombre, String fechaRealizacion, String porcentajeRealizado) {
-		this.nombre = nombre;
-		this.fechaRealizacion = fechaRealizacion;
-		this.porcentajeRealizado = porcentajeRealizado;
 	}
 
 	public String getNombre() {
@@ -28,35 +21,17 @@ public class Programa {
 		this.nombre = nombre;
 	}
 
-	public String getFechaRealizacion() {
-		return fechaRealizacion;
+	public TreeMap<String, Object> getUnidades() {
+		return unidades;
 	}
 
-	public void setFechaRealizacion(String fechaRealizacion) {
-		this.fechaRealizacion = fechaRealizacion;
-	}
-
-	public String getPorcentajeRealizado() {
-		return porcentajeRealizado;
-	}
-
-	public void setPorcentajeRealizado(String porcentajeRealizado) {
-		this.porcentajeRealizado = porcentajeRealizado;
-	}
-
-	@Exclude
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
+	public void setUnidades(TreeMap<String, Object> unidades2) {
+		this.unidades = unidades2;
 	}
 
 	@Override
 	public String toString() {
-		return "Programa [id=" + id + ", nombre=" + nombre + ", fechaRealizacion=" + fechaRealizacion
-				+ ", porcentajeRealizado=" + porcentajeRealizado + "]";
+		return "Programa [nombre=" + nombre + ", unidades=" + unidades + "]";
 	}
 
 }

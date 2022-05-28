@@ -25,8 +25,6 @@ public class LovaasCenterProyectoFinalApplication implements CommandLineRunner {
 	private VentanaLogin ventanaLogin;
 	@Autowired
 	private VentanaDashboard ventanaDashboard;
-	@Autowired
-	private FirebaseController fbc;
 
 	public static void main(String[] args) {
 		SpringApplication.run(LovaasCenterProyectoFinalApplication.class, args);
@@ -52,7 +50,6 @@ public class LovaasCenterProyectoFinalApplication implements CommandLineRunner {
 			}
 		});
 
-		// TableModel model = fbc.getTabla("terapeutas");
 	}
 
 }

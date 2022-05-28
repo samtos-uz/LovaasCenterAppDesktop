@@ -1,17 +1,23 @@
 package com.lovaas.center.controlador;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 
+import javax.swing.DefaultListModel;
+import javax.swing.ListModel;
+import javax.swing.event.ListDataListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -173,7 +179,7 @@ public class FirebaseController {
 
 	/**
 	 * Metodo para dar de alta a un terapeuta en la coleccion de terapeutas de
-	 * Firebase
+	 * Firebase con id "Nombre" + "Apellidos" del terapeuta
 	 * 
 	 * @param terapeuta
 	 * @return <code>true</code> si se pudo dar de alta correctamente,
@@ -181,10 +187,10 @@ public class FirebaseController {
 	 */
 	public boolean altaTerapeuta(Terapeuta terapeuta) {
 		boolean alta = false;
-		String idDoc = terapeuta.getNombre() + terapeuta.getApellidos();
-		//Peticion a bd (alta)
+		String idDoc = terapeuta.getNombre() + " " + terapeuta.getApellidos();
+		// Peticion a bd (alta)
 		ApiFuture<WriteResult> addedDocRef = db.getFirebase().collection("terapeutas").document(idDoc).set(terapeuta);
-		
+
 		try {
 			System.out.println("update time: " + addedDocRef.get().getUpdateTime());
 			alta = true;
@@ -209,7 +215,7 @@ public class FirebaseController {
 		try {
 			String id = addedDocRef.get().getId();
 			System.out.println("Added document with ID: " + id);
-			programa.setId(id);// asigno id para futura actualizacion
+			programa.setNombre(id);// asigno id para futura actualizacion
 			System.out.println(programa.toString());
 			if (!id.isEmpty())
 				alta = true;
@@ -236,22 +242,9 @@ public class FirebaseController {
 	 */
 	public boolean actualizarTerapeuta(Terapeuta terapeuta) throws InterruptedException, ExecutionException {
 		boolean update = false;
-
 		if (terapeuta.getId() != null) {
-			// Update an existing document
-			DocumentReference docRef = db.getFirebase().collection("terapeutas").document(terapeuta.getId());
-
-			// (async) Update one field
-			Map<String, Object> camposTerapeuta = new HashMap<String, Object>();
-			camposTerapeuta.put("nombre", terapeuta.getNombre());
-			camposTerapeuta.put("apellidos", terapeuta.getApellidos());
-			camposTerapeuta.put("ciudad", terapeuta.getCiudad());
-			camposTerapeuta.put("telefono", terapeuta.getTelefono());
-			ApiFuture<WriteResult> future1 = docRef.update(camposTerapeuta);
-
-			WriteResult result = future1.get();
-			System.out.println("Write result: " + result);
-			update = true;
+			eliminarTerapeuta(terapeuta);
+			update = altaTerapeuta(terapeuta);
 		} else {
 			update = altaTerapeuta(terapeuta);
 		}
@@ -262,15 +255,13 @@ public class FirebaseController {
 	public boolean actualizarPrograma(Programa programa) throws InterruptedException, ExecutionException {
 		boolean update = false;
 
-		if (programa.getId() != null) {
+		if (programa.getNombre() != null) {
 			// Update an existing document
-			DocumentReference docRef = db.getFirebase().collection("programas").document(programa.getId());
+			DocumentReference docRef = db.getFirebase().collection("programas").document(programa.getNombre());
 
 			// (async) Update one field
 			Map<String, Object> camposPrograma = new HashMap<String, Object>();
 			camposPrograma.put("nombre", programa.getNombre());
-			camposPrograma.put("fechaRealizacion", programa.getFechaRealizacion());
-			camposPrograma.put("porcentajeRealizado", programa.getPorcentajeRealizado());
 			ApiFuture<WriteResult> future1 = docRef.update(camposPrograma);
 
 			WriteResult result = future1.get();
@@ -298,12 +289,13 @@ public class FirebaseController {
 		// future.get() blocks on response
 		List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 		for (DocumentSnapshot document : documents) {
-			System.out.println(document.getId() + " => " + document.toObject(Terapeuta.class));
+//			System.out.println(document.getId() + " => " + document.toObject(Terapeuta.class));
 			Terapeuta terapeutaBD = document.toObject(Terapeuta.class);
 			// Comprobacion de apellidos para confirmar la igualdad de los objetos ( Nombre,
 			// Apellidos = Nombre, Apellidos)
 			if (terapeutaBD.getApellidos().matches(terapeutaActual.getApellidos())) {
 				terapeutaActual.setId(document.getId());
+				System.out.println(terapeutaActual.toString());
 			}
 		}
 	}
@@ -315,12 +307,13 @@ public class FirebaseController {
 		// future.get() blocks on response
 		List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 		for (DocumentSnapshot document : documents) {
-			System.out.println(document.getId() + " => " + document.toObject(Terapeuta.class));
+//			System.out.println(document.getId() + " => " + document.toObject(Terapeuta.class));
 			Programa programaBD = document.toObject(Programa.class);
 			// Comprobacion de apellidos para confirmar la igualdad de los objetos
-			if (programaBD.getFechaRealizacion().matches(programaActual.getFechaRealizacion())) {
-				programaActual.setId(document.getId());
-			}
+//			if (programaBD.getFechaRealizacion().matches(programaActual.getFechaRealizacion())) {
+//				programaActual.setId(document.getId());
+//				System.out.println(programaActual.toString());
+//			}
 		}
 	}
 
@@ -349,10 +342,78 @@ public class FirebaseController {
 	 */
 	public void eliminarPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
 		// asynchronously delete a document
-		ApiFuture<WriteResult> writeResult = db.getFirebase().collection("programas").document(programaActual.getId())
-				.delete();
+		ApiFuture<WriteResult> writeResult = db.getFirebase().collection("programas")
+				.document(programaActual.getNombre()).delete();
 		// ...
 		System.out.println("Update time : " + writeResult.get().getUpdateTime());
 	}
+
+	/**
+	 * Método que realiza una busqueda de coleccion en FB, y transforma la lista de
+	 * Id's de los documentos a un Modelo de lista
+	 * 
+	 * @param nombreTabla
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 * @return objeto de tipo {@link ListModel} con los id's de la coleccion
+	 */
+	public DefaultListModel<String> getListModel(String nombreTabla) throws InterruptedException, ExecutionException {
+
+		// traerme toda la coleccion
+		CollectionReference collection = getCollection(nombreTabla);
+		ApiFuture<QuerySnapshot> querySnapshot = collection.get();
+		List<QueryDocumentSnapshot> listaDocumentos = querySnapshot.get().getDocuments();
+
+		DefaultListModel<String> model = new DefaultListModel<String>();
+
+		// Asignar los id's de los documentos al ListModel
+		for (QueryDocumentSnapshot documento : listaDocumentos) {
+			model.addElement(documento.getId());
+		}
+
+		return model;
+	}
+
+	/**
+	 * Metodo que obtiene las unidades del programa y las asigna al mismo
+	 * 
+	 * @param programaActual para realizar la busqueda del documento en bd
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	public void obtenerUnidades(Programa programaActual) throws InterruptedException, ExecutionException {
+		DocumentReference docRef = db.getFirebase().collection("programasAndroid")
+				.document(programaActual.getNombre());
+		ApiFuture<DocumentSnapshot> future = docRef.get();
+		DocumentSnapshot document = future.get();
+		Programa programaBd = null;
+		if (document.exists()) {
+			Map<String, Object> unidades = document.getData();
+			// pasamos los campos a un TreeMap para ordenar las Keys
+			TreeMap<String, Object> unidadesSort = new TreeMap<String, Object>(unidades);
+			programaActual.setUnidades(unidadesSort); // Asignamos unidades
+			System.out.println(programaActual.toString());
+		} else {
+			System.out.println("No se encontró programa");
+		}
+	}
+
+	/*
+	 * public void setDb(FirebaseInitializer db) { this.db = db; }
+	 * 
+	 * public static void main(String[] args) { FirebaseInitializer bd = new
+	 * FirebaseInitializer(); try { bd.iniciarDB(); } catch (IOException e1) {
+	 * e1.printStackTrace(); }
+	 * 
+	 * FirebaseController fbc = new FirebaseController(); fbc.setDb(bd);
+	 * 
+	 * try { DefaultListModel<String> model = fbc.getListModel("programasAndroid");
+	 * for (int i = 0; i < model.getSize(); i++) { System.out.println(model.get(i));
+	 * } } catch (InterruptedException | ExecutionException e) {
+	 * e.printStackTrace();
+	 * 
+	 * 
+	 * }
+	 */
 
 }

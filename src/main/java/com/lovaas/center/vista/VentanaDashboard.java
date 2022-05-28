@@ -1,20 +1,16 @@
 package com.lovaas.center.vista;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.EventQueue;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.AncestorListener;
 
 import com.lovaas.center.controlador.ControladorVentanas;
 import com.lovaas.center.modelo.entidad.Programa;
 import com.lovaas.center.modelo.entidad.Terapeuta;
 
-import javax.swing.event.AncestorEvent;
 import javax.swing.JLabel;
 import java.awt.Font;
 import java.awt.Image;
@@ -29,11 +25,9 @@ import java.util.concurrent.ExecutionException;
 
 import javax.swing.SwingConstants;
 import java.awt.Cursor;
-import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.JTable;
 import javax.swing.JScrollPane;
-import javax.swing.table.DefaultTableModel;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,15 +35,18 @@ import javax.swing.JTextField;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.JList;
+import javax.swing.ListSelectionModel;
 
 @Component
 public class VentanaDashboard extends JFrame {
 	// Funcionalidad APP
+	@Autowired
 	private ControladorVentanas controlador;
 	// Vista
 	private JPanel bg;
 	private MenuPanel menuLateral;
-	// para los iconos
+	// iconos
 	private Path currentRelativePath;
 	private String rutaImg;
 	// Entidades
@@ -76,7 +73,6 @@ public class VentanaDashboard extends JFrame {
 	private JPanel panelCitas;
 	private JPanel crudTerapeutas;
 	private JTable tableTerapeutas;
-	private JTable tableProgramas;
 	private JTable tableInformes;
 	private JTable tableCitas;
 
@@ -84,7 +80,7 @@ public class VentanaDashboard extends JFrame {
 	private String nombreTabla = "terapeutas";
 	private JPanel crudProgramas;
 	private JLabel lblListadoProgramas;
-	private JScrollPane scrollPanePrg;
+	private JScrollPane scrllProgramas;
 	private JTextField txtNombre;
 	private JTextField txtApellidos;
 	private JTextField txtCiudad;
@@ -93,21 +89,17 @@ public class VentanaDashboard extends JFrame {
 	private JLabel lblRespuestaTerapeuta;
 	private JLabel lblNombrePrograma;
 	private JTextField txtNombrePrograma;
-	private JLabel lblFechaPrograma;
-	private JTextField txtPorcentaje;
-	private JLabel lblPorcentaje;
-	private JTextField txtFechaPrograma;
-	private JButton btnAlta_1;
+	private JButton btnAltaPrograma;
 	private JButton btnActualizarTerapeuta;
 	private JButton btnActualizarPrograma;
 	private JButton btnBorrarTerapeuta;
-
-	/*
-	 * public static void main(String[] args) { EventQueue.invokeLater(new
-	 * Runnable() { public void run() { try { VentanaDashboard frame = new
-	 * VentanaDashboard(); frame.setVisible(true); } catch (Exception e) {
-	 * e.printStackTrace(); } } }); }
-	 */
+	private JButton btnBorrarPrograma;
+	private JList<String> jListProgramas;
+	private JScrollPane scrllUnidades;
+	private JList<String> jLIstUnidades;
+	private JLabel lblListadoUnidades;
+	private JButton btnActualizarUnidad;
+	private JButton btnEliminarUnidad;
 
 	public ControladorVentanas getControlador() {
 		return controlador;
@@ -200,6 +192,126 @@ public class VentanaDashboard extends JFrame {
 		lblMinimizar.setFont(new Font("Tahoma", Font.PLAIN, 30));
 		lblMinimizar.setBounds(1176, 0, 50, 50);
 		barraAcciones.add(lblMinimizar);
+
+		panelProgramas = new JPanel();
+		panelProgramas.setBackground(new Color(255, 250, 240));
+		panelProgramas.setBounds(275, 50, 1005, 670);
+		bg.add(panelProgramas);
+		panelProgramas.setLayout(null);
+
+		crudProgramas = new JPanel();
+		crudProgramas.setBounds(49, 260, 900, 380);
+		crudProgramas.setLayout(null);
+		panelProgramas.add(crudProgramas);
+
+		lblListadoProgramas = new JLabel("Listado Programas");
+		lblListadoProgramas.setForeground(Color.DARK_GRAY);
+		lblListadoProgramas.setFont(new Font("Roboto", Font.BOLD, 18));
+		lblListadoProgramas.setBounds(10, 10, 207, 40);
+		crudProgramas.add(lblListadoProgramas);
+
+		scrllProgramas = new JScrollPane();
+		scrllProgramas.setBounds(10, 60, 300, 310);
+		crudProgramas.add(scrllProgramas);
+
+		jListProgramas = new JList<String>();
+		jListProgramas.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				
+				String nombrePrograma = jListProgramas.getSelectedValue();
+				txtNombrePrograma.setText(nombrePrograma);
+				// setteo nombre (id) al programa para despues obtener sus unidades
+				programaActual.setNombre(nombrePrograma);
+				try {
+					controlador.obtenerUnidades(programaActual);
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+				// Una vez obtenidas las unidades mostrarlas en su Jlist.
+				jLIstUnidades.setModel(controlador.generarModeloUnidades(programaActual.getUnidades()));
+			}
+		});
+		jListProgramas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		scrllProgramas.setViewportView(jListProgramas);
+
+		scrllUnidades = new JScrollPane();
+		scrllUnidades.setBounds(383, 60, 300, 310);
+		crudProgramas.add(scrllUnidades);
+
+		jLIstUnidades = new JList<String>();
+		scrllUnidades.setViewportView(jLIstUnidades);
+
+		lblListadoUnidades = new JLabel("Unidades de programa");
+		lblListadoUnidades.setForeground(Color.DARK_GRAY);
+		lblListadoUnidades.setFont(new Font("Roboto", Font.BOLD, 18));
+		lblListadoUnidades.setBounds(383, 10, 207, 40);
+		crudProgramas.add(lblListadoUnidades);
+
+		JButton btnAnadirUnidad = new JButton("Añadir unidad");
+		btnAnadirUnidad.setForeground(new Color(255, 250, 240));
+		btnAnadirUnidad.setFont(new Font("Roboto Condensed", Font.BOLD, 16));
+		btnAnadirUnidad.setBackground(Color.GRAY);
+		btnAnadirUnidad.setBounds(711, 121, 150, 50);
+		crudProgramas.add(btnAnadirUnidad);
+
+		btnActualizarUnidad = new JButton("Actualizar unidad");
+		btnActualizarUnidad.setForeground(new Color(255, 250, 240));
+		btnActualizarUnidad.setFont(new Font("Roboto Condensed", Font.BOLD, 16));
+		btnActualizarUnidad.setBackground(Color.GRAY);
+		btnActualizarUnidad.setBounds(711, 177, 150, 50);
+		crudProgramas.add(btnActualizarUnidad);
+
+		btnEliminarUnidad = new JButton("Eliminar unidad");
+		btnEliminarUnidad.setForeground(new Color(255, 250, 240));
+		btnEliminarUnidad.setFont(new Font("Roboto Condensed", Font.BOLD, 16));
+		btnEliminarUnidad.setBackground(Color.GRAY);
+		btnEliminarUnidad.setBounds(711, 237, 150, 50);
+		crudProgramas.add(btnEliminarUnidad);
+
+		lblNombrePrograma = new JLabel("Nombre del programa:");
+		lblNombrePrograma.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNombrePrograma.setForeground(Color.BLACK);
+		lblNombrePrograma.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblNombrePrograma.setBounds(49, 124, 195, 40);
+		panelProgramas.add(lblNombrePrograma);
+
+		txtNombrePrograma = new JTextField();
+		txtNombrePrograma.setColumns(10);
+		txtNombrePrograma.setBounds(246, 124, 195, 40);
+		panelProgramas.add(txtNombrePrograma);
+
+		btnAltaPrograma = new JButton("Alta");
+		;
+		btnAltaPrograma.setForeground(new Color(255, 250, 240));
+		btnAltaPrograma.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnAltaPrograma.setBackground(new Color(0, 128, 0));
+		btnAltaPrograma.setBounds(451, 119, 150, 50);
+		panelProgramas.add(btnAltaPrograma);
+
+		btnActualizarPrograma = new JButton("Actualizar");
+
+		btnBorrarPrograma = new JButton("Borrar");
+		btnBorrarPrograma.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				limpiarCamposPrograma();
+				try {
+					controlador.borrarPrograma(programaActual);
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnBorrarPrograma.setForeground(new Color(255, 250, 240));
+		btnBorrarPrograma.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnBorrarPrograma.setBackground(Color.RED);
+		btnBorrarPrograma.setBounds(796, 119, 150, 50);
+		panelProgramas.add(btnBorrarPrograma);
+		btnActualizarPrograma.setForeground(new Color(255, 250, 240));
+		btnActualizarPrograma.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnActualizarPrograma.setBackground(Color.GRAY);
+		btnActualizarPrograma.setBounds(625, 119, 150, 50);
+		panelProgramas.add(btnActualizarPrograma);
 
 		panelTerapeutas = new JPanel();
 		panelTerapeutas.setBackground(new Color(255, 250, 240));
@@ -368,148 +480,6 @@ public class VentanaDashboard extends JFrame {
 		btnBorrarTerapeuta.setBackground(Color.RED);
 		btnBorrarTerapeuta.setBounds(607, 176, 150, 50);
 		panelTerapeutas.add(btnBorrarTerapeuta);
-
-		panelProgramas = new JPanel();
-		panelProgramas.setBackground(new Color(255, 250, 240));
-		panelProgramas.setBounds(275, 50, 1005, 670);
-		bg.add(panelProgramas);
-		panelProgramas.setLayout(null);
-
-		crudProgramas = new JPanel();
-		crudProgramas.setBounds(49, 260, 900, 380);
-		crudProgramas.setLayout(null);
-		panelProgramas.add(crudProgramas);
-
-		lblListadoProgramas = new JLabel("Listado Programas");
-		lblListadoProgramas.setForeground(Color.DARK_GRAY);
-		lblListadoProgramas.setFont(new Font("Roboto", Font.BOLD, 18));
-		lblListadoProgramas.setBounds(10, 10, 207, 40);
-		crudProgramas.add(lblListadoProgramas);
-
-		scrollPanePrg = new JScrollPane();
-		scrollPanePrg.setBounds(10, 60, 880, 310);
-		crudProgramas.add(scrollPanePrg);
-
-		tableProgramas = new JTable();
-		tableProgramas.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				int fila = tableProgramas.getSelectedRow();
-				txtNombrePrograma.setText((String) tableProgramas.getValueAt(fila, 2));
-				txtFechaPrograma.setText((String) tableProgramas.getValueAt(fila, 0));
-				txtPorcentaje.setText((String) tableProgramas.getValueAt(fila, 1));
-				// settear objeto con los nuevos datos
-				programaActual.setNombre(txtNombrePrograma.getText());
-				programaActual.setFechaRealizacion(txtFechaPrograma.getText());
-				programaActual.setPorcentajeRealizado(txtPorcentaje.getText());
-				try {
-					controlador.obtenerIdPrograma(programaActual);
-				} catch (InterruptedException | ExecutionException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		scrollPanePrg.setViewportView(tableProgramas);
-
-		lblNombrePrograma = new JLabel("Nombre");
-		lblNombrePrograma.setHorizontalAlignment(SwingConstants.CENTER);
-		lblNombrePrograma.setForeground(Color.BLACK);
-		lblNombrePrograma.setFont(new Font("Roboto", Font.PLAIN, 18));
-		lblNombrePrograma.setBounds(131, 64, 150, 40);
-		panelProgramas.add(lblNombrePrograma);
-
-		txtNombrePrograma = new JTextField();
-		txtNombrePrograma.setColumns(10);
-		txtNombrePrograma.setBounds(131, 114, 150, 40);
-		panelProgramas.add(txtNombrePrograma);
-
-		lblFechaPrograma = new JLabel("Fecha realización");
-		lblFechaPrograma.setHorizontalAlignment(SwingConstants.CENTER);
-		lblFechaPrograma.setForeground(Color.BLACK);
-		lblFechaPrograma.setFont(new Font("Roboto", Font.PLAIN, 18));
-		lblFechaPrograma.setBounds(412, 64, 150, 40);
-		panelProgramas.add(lblFechaPrograma);
-
-		txtPorcentaje = new JTextField();
-		txtPorcentaje.setColumns(10);
-		txtPorcentaje.setBounds(693, 114, 180, 40);
-		panelProgramas.add(txtPorcentaje);
-
-		lblPorcentaje = new JLabel("Porcentaje realizado");
-		lblPorcentaje.setHorizontalAlignment(SwingConstants.CENTER);
-		lblPorcentaje.setForeground(Color.BLACK);
-		lblPorcentaje.setFont(new Font("Roboto", Font.PLAIN, 18));
-		lblPorcentaje.setBounds(693, 64, 180, 40);
-		panelProgramas.add(lblPorcentaje);
-
-		btnAlta_1 = new JButton("Alta");
-		btnAlta_1.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String nombrePrograma = txtNombrePrograma.getText();
-				String fecha = txtFechaPrograma.getText();
-				String porcentaje = txtPorcentaje.getText();
-				limpiarCamposPrograma();
-				Programa programa = new Programa(nombrePrograma, fecha, porcentaje);
-				boolean alta = controlador.altaPrograma(programa);
-				try {
-					tableProgramas.setModel(controlador.getTabla(nombreTabla));
-				} catch (InterruptedException | ExecutionException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		btnAlta_1.setForeground(new Color(255, 250, 240));
-		btnAlta_1.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
-		btnAlta_1.setBackground(new Color(0, 128, 0));
-		btnAlta_1.setBounds(262, 176, 150, 50);
-		panelProgramas.add(btnAlta_1);
-
-		btnActualizarPrograma = new JButton("Actualizar");
-		btnActualizarPrograma.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String nombrePrograma = txtNombrePrograma.getText();
-				String fecha = txtFechaPrograma.getText();
-				String porcentaje = txtPorcentaje.getText();
-				programaActual.setNombre(nombrePrograma);
-				programaActual.setFechaRealizacion(fecha);
-				programaActual.setPorcentajeRealizado(porcentaje);
-				limpiarCamposPrograma();
-				try {
-					boolean update = controlador.actualizarPrograma(programaActual);
-					tableProgramas.setModel(controlador.getTabla(nombreTabla));
-				} catch (InterruptedException | ExecutionException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-
-		JButton btnBorrarPrograma = new JButton("Borrar");
-		btnBorrarPrograma.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				limpiarCamposPrograma();
-				try {
-					controlador.borrarPrograma(programaActual);
-					tableProgramas.setModel(controlador.getTabla(nombreTabla));
-				} catch (InterruptedException | ExecutionException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		btnBorrarPrograma.setForeground(new Color(255, 250, 240));
-		btnBorrarPrograma.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
-		btnBorrarPrograma.setBackground(Color.RED);
-		btnBorrarPrograma.setBounds(607, 176, 150, 50);
-		panelProgramas.add(btnBorrarPrograma);
-		btnActualizarPrograma.setForeground(new Color(255, 250, 240));
-		btnActualizarPrograma.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
-		btnActualizarPrograma.setBackground(Color.GRAY);
-		btnActualizarPrograma.setBounds(436, 176, 150, 50);
-		panelProgramas.add(btnActualizarPrograma);
-
-		txtFechaPrograma = new JTextField();
-		txtFechaPrograma.setColumns(10);
-		txtFechaPrograma.setBounds(412, 114, 150, 40);
-		panelProgramas.add(txtFechaPrograma);
 
 		menuLateral = new MenuPanel();
 		// menuLateral.setOpaque(false);
@@ -722,10 +692,15 @@ public class VentanaDashboard extends JFrame {
 			@Override
 			public void windowActivated(WindowEvent e) {
 				try {
-					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
-					tableProgramas.setModel(controlador.getTabla(nombreTabla));
+					switch (nombreTabla) {
+					case "terapeutas":
+						tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
+						break;
+					case "programasAndroid":
+						jListProgramas.setModel(controlador.getListModel(nombreTabla));
+						break;
+					}
 				} catch (Exception ex) {
-					// TODO Auto-generated catch block
 					ex.printStackTrace();
 				}
 			}
@@ -764,8 +739,6 @@ public class VentanaDashboard extends JFrame {
 
 	protected void limpiarCamposPrograma() {
 		txtNombrePrograma.setText("");
-		txtFechaPrograma.setText("");
-		txtPorcentaje.setText("");
 	}
 
 	protected void limpiarCamposTerapeuta() {
@@ -781,7 +754,7 @@ public class VentanaDashboard extends JFrame {
 	protected void visibleTerapeutas() {
 		nombreTabla = "terapeutas";
 		try {
-			tableProgramas.setModel(controlador.getTabla(nombreTabla));
+			tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
 		} catch (InterruptedException | ExecutionException e1) {
 			e1.printStackTrace();
 		}
@@ -817,12 +790,14 @@ public class VentanaDashboard extends JFrame {
 	 * Metodo para hacer visible solo el panel de programas
 	 */
 	protected void visibleProgramas() {
-		nombreTabla = "programas";
+		nombreTabla = "programasAndroid";
+
 		try {
-			tableProgramas.setModel(controlador.getTabla(nombreTabla));
-		} catch (InterruptedException | ExecutionException e1) {
-			e1.printStackTrace();
+			jListProgramas.setModel(controlador.getListModel(nombreTabla));
+		} catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
 		}
+
 		panelTerapeutas.setVisible(false);
 		panelInformes.setVisible(false);
 		panelCitas.setVisible(false);
