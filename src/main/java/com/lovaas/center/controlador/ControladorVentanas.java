@@ -132,7 +132,7 @@ public class ControladorVentanas {
 		return response;
 	}
 
-	public boolean altaPrograma(Programa programa) {
+	public boolean altaPrograma(Programa programa) throws InterruptedException, ExecutionException {
 		boolean alta = fbc.altaPrograma(programa);
 		return alta;
 	}
@@ -169,8 +169,9 @@ public class ControladorVentanas {
 		fbc.eliminarTerapeuta(terapeutaActual);
 	}
 
-	public void borrarPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
-		fbc.eliminarPrograma(programaActual);
+	public boolean eliminarPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
+		boolean eliminado = fbc.eliminarPrograma(programaActual);
+		return eliminado;
 	}
 
 	public ListModel<String> getListModel(String nombreTabla) throws InterruptedException, ExecutionException {
@@ -183,17 +184,86 @@ public class ControladorVentanas {
 	}
 
 	/**
-	 * Genera el modelo de JlistUnidades a partir de un {@link TreeMap} pasado por parametro
+	 * Genera el modelo de JlistUnidades a partir de un {@link TreeMap} pasado por
+	 * parametro
+	 * 
 	 * @param unidades
 	 * @return
 	 */
-	public ListModel generarModeloUnidades(TreeMap<String, Object> unidades) {
+	public ListModel obtenerModeloUnidades(TreeMap<String, Object> unidades) {
 		DefaultListModel<String> model = new DefaultListModel<String>();
 		for (Entry<String, Object> par : unidades.entrySet()) {
 			String unidadCompleta = par.getKey() + ": " + par.getValue();
 			model.addElement(unidadCompleta);
 		}
 		return model;
+	}
+
+	/**
+	 * Metodo que recibe un string con clave valor y hace la división para
+	 * convertirlo en un {@link TreeMap}
+	 * 
+	 * @param parUnidad en formato {@link String}
+	 * @return el objeto {@link TreeMap} con clave - valor del {@link String} pasado
+	 *         por parámetro
+	 */
+	public TreeMap<String, String> getClaveValor(String parUnidad) {
+		TreeMap<String, String> unidadActual = new TreeMap<String, String>();
+		String[] arrPar = parUnidad.split(": ");
+		if (arrPar.length >= 2) {
+			unidadActual.put(arrPar[0], arrPar[1]);
+		}
+		return unidadActual;
+	}
+
+	/**
+	 * Convierte el {@link String} en un par Clave - Valor y lo agrega como Unidad
+	 * al programa asociado
+	 * 
+	 * @param programaActual
+	 * @param nombreUnidad
+	 */
+	public void asinarUnidadPrograma(Programa programaActual, String nombreUnidad) {
+		boolean repetido = false;
+		TreeMap<String, Object> unidades = programaActual.getUnidades();
+		for (Object value : unidades.values()) {
+			if (value.equals(nombreUnidad)) {
+				repetido = true;
+			}
+		}
+		if (!repetido) {
+			String id = String.valueOf(unidades.size() + 1); // id autoincremental
+			unidades.put(id, nombreUnidad);
+		}
+	}
+
+	/**
+	 * Llama al modelo para que actualice los campos del objeto en BD
+	 * 
+	 * @param programaActual
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public void actualizarUnidadesPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
+		fbc.actualizarUnidadesPrograma(programaActual);
+	}
+
+	/**
+	 * Elimina una unidad pasada por parametro del programa
+	 * 
+	 * @param programaActual
+	 * @param unidadActual
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	public void eliminarUnidadPrograma(Programa programaActual, TreeMap<String, String> unidadActual)
+			throws InterruptedException, ExecutionException {
+		String key = unidadActual.firstKey();
+		// Eliminamos campo del objeto actual
+		TreeMap<String, Object> unidades = programaActual.getUnidades();
+		unidades.remove(key);
+		// Eliminamos en bd
+		fbc.eliminarUnidadPrograma(programaActual, key);
 	}
 
 }

@@ -21,7 +21,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.TreeMap;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.SwingConstants;
 import java.awt.Cursor;
@@ -36,6 +39,7 @@ import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 
 @Component
@@ -54,6 +58,7 @@ public class VentanaDashboard extends JFrame {
 	private Terapeuta terapeutaActual;
 	@Autowired
 	private Programa programaActual;
+	private TreeMap<String, String> unidadActual;
 	// Posicion mouse
 	private int xMouse, yMouse;
 	private JPanel panelTerapeutas;
@@ -98,8 +103,9 @@ public class VentanaDashboard extends JFrame {
 	private JScrollPane scrllUnidades;
 	private JList<String> jLIstUnidades;
 	private JLabel lblListadoUnidades;
-	private JButton btnActualizarUnidad;
 	private JButton btnEliminarUnidad;
+	private JLabel lblTituloProgramas;
+	private JLabel lblRespuestaPrograma;
 
 	public ControladorVentanas getControlador() {
 		return controlador;
@@ -205,68 +211,108 @@ public class VentanaDashboard extends JFrame {
 		panelProgramas.add(crudProgramas);
 
 		lblListadoProgramas = new JLabel("Listado Programas");
+		lblListadoProgramas.setHorizontalAlignment(SwingConstants.CENTER);
 		lblListadoProgramas.setForeground(Color.DARK_GRAY);
 		lblListadoProgramas.setFont(new Font("Roboto", Font.BOLD, 18));
-		lblListadoProgramas.setBounds(10, 10, 207, 40);
+		lblListadoProgramas.setBounds(22, 10, 300, 40);
 		crudProgramas.add(lblListadoProgramas);
 
 		scrllProgramas = new JScrollPane();
-		scrllProgramas.setBounds(10, 60, 300, 310);
+		scrllProgramas.setBounds(22, 60, 300, 310);
 		crudProgramas.add(scrllProgramas);
 
 		jListProgramas = new JList<String>();
 		jListProgramas.addMouseListener(new MouseAdapter() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public void mousePressed(MouseEvent e) {
-				
-				String nombrePrograma = jListProgramas.getSelectedValue();
-				txtNombrePrograma.setText(nombrePrograma);
-				// setteo nombre (id) al programa para despues obtener sus unidades
-				programaActual.setNombre(nombrePrograma);
-				try {
-					controlador.obtenerUnidades(programaActual);
-				} catch (InterruptedException | ExecutionException e1) {
-					e1.printStackTrace();
+				if (!jListProgramas.isSelectionEmpty()) {
+					
+					String nombrePrograma = jListProgramas.getSelectedValue();
+					txtNombrePrograma.setText(nombrePrograma);
+					// setteo nombre (id) al programa para despues obtener sus unidades
+					programaActual.setNombre(nombrePrograma);
+					try {
+						controlador.obtenerUnidades(programaActual);
+					} catch (InterruptedException | ExecutionException e1) {
+						e1.printStackTrace();
+					}
+					// Una vez obtenidas las unidades mostrarlas en su Jlist.
+					jLIstUnidades.setModel(controlador.obtenerModeloUnidades(programaActual.getUnidades()));
 				}
-				// Una vez obtenidas las unidades mostrarlas en su Jlist.
-				jLIstUnidades.setModel(controlador.generarModeloUnidades(programaActual.getUnidades()));
+
 			}
 		});
 		jListProgramas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		scrllProgramas.setViewportView(jListProgramas);
 
 		scrllUnidades = new JScrollPane();
-		scrllUnidades.setBounds(383, 60, 300, 310);
+		scrllUnidades.setBounds(395, 60, 300, 310);
 		crudProgramas.add(scrllUnidades);
 
 		jLIstUnidades = new JList<String>();
+		jLIstUnidades.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (!jLIstUnidades.isSelectionEmpty()) {
+					String parUnidad = jLIstUnidades.getSelectedValue();
+					System.out.println(parUnidad);
+					// Pedimos al controlador que nos convierta el String a clave - valor
+					unidadActual = controlador.getClaveValor(parUnidad);
+				}
+
+			}
+		});
+		jLIstUnidades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		scrllUnidades.setViewportView(jLIstUnidades);
 
 		lblListadoUnidades = new JLabel("Unidades de programa");
+		lblListadoUnidades.setHorizontalAlignment(SwingConstants.CENTER);
 		lblListadoUnidades.setForeground(Color.DARK_GRAY);
 		lblListadoUnidades.setFont(new Font("Roboto", Font.BOLD, 18));
-		lblListadoUnidades.setBounds(383, 10, 207, 40);
+		lblListadoUnidades.setBounds(395, 10, 300, 40);
 		crudProgramas.add(lblListadoUnidades);
 
 		JButton btnAnadirUnidad = new JButton("Añadir unidad");
+		btnAnadirUnidad.addActionListener(new ActionListener() {
+			@SuppressWarnings("unchecked")
+			public void actionPerformed(ActionEvent e) {
+				String nombreUnidad;
+				nombreUnidad = JOptionPane.showInputDialog("Nombre de la unidad:");
+				System.out.println(nombreUnidad);
+				controlador.asinarUnidadPrograma(programaActual, nombreUnidad);
+				try {
+					controlador.actualizarUnidadesPrograma(programaActual);
+					jLIstUnidades.setModel(controlador.obtenerModeloUnidades(programaActual.getUnidades()));
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 		btnAnadirUnidad.setForeground(new Color(255, 250, 240));
 		btnAnadirUnidad.setFont(new Font("Roboto Condensed", Font.BOLD, 16));
-		btnAnadirUnidad.setBackground(Color.GRAY);
-		btnAnadirUnidad.setBounds(711, 121, 150, 50);
+		btnAnadirUnidad.setBackground(new Color(0, 128, 0));
+		btnAnadirUnidad.setBounds(721, 147, 150, 50);
 		crudProgramas.add(btnAnadirUnidad);
 
-		btnActualizarUnidad = new JButton("Actualizar unidad");
-		btnActualizarUnidad.setForeground(new Color(255, 250, 240));
-		btnActualizarUnidad.setFont(new Font("Roboto Condensed", Font.BOLD, 16));
-		btnActualizarUnidad.setBackground(Color.GRAY);
-		btnActualizarUnidad.setBounds(711, 177, 150, 50);
-		crudProgramas.add(btnActualizarUnidad);
-
 		btnEliminarUnidad = new JButton("Eliminar unidad");
+		btnEliminarUnidad.addActionListener(new ActionListener() {
+			@SuppressWarnings("unchecked")
+			public void actionPerformed(ActionEvent e) {
+				try {
+					controlador.eliminarUnidadPrograma(programaActual, unidadActual);
+//					jListProgramas.setModel(controlador.getListModel(nombreTabla));
+					jLIstUnidades.setModel(controlador.obtenerModeloUnidades(programaActual.getUnidades()));
+				} catch (InterruptedException | ExecutionException e2) {
+					e2.printStackTrace();
+				}
+
+			}
+		});
 		btnEliminarUnidad.setForeground(new Color(255, 250, 240));
 		btnEliminarUnidad.setFont(new Font("Roboto Condensed", Font.BOLD, 16));
-		btnEliminarUnidad.setBackground(Color.GRAY);
-		btnEliminarUnidad.setBounds(711, 237, 150, 50);
+		btnEliminarUnidad.setBackground(Color.RED);
+		btnEliminarUnidad.setBounds(721, 207, 150, 50);
 		crudProgramas.add(btnEliminarUnidad);
 
 		lblNombrePrograma = new JLabel("Nombre del programa:");
@@ -282,6 +328,18 @@ public class VentanaDashboard extends JFrame {
 		panelProgramas.add(txtNombrePrograma);
 
 		btnAltaPrograma = new JButton("Alta");
+		btnAltaPrograma.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				limpiarCamposPrograma();
+				try {
+					boolean alta = controlador.altaPrograma(programaActual);
+					respuestaAltaPrograma(alta);
+					jListProgramas.setModel(controlador.getListModel(nombreTabla));
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 		;
 		btnAltaPrograma.setForeground(new Color(255, 250, 240));
 		btnAltaPrograma.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
@@ -290,13 +348,20 @@ public class VentanaDashboard extends JFrame {
 		panelProgramas.add(btnAltaPrograma);
 
 		btnActualizarPrograma = new JButton("Actualizar");
+		btnActualizarPrograma.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String nuevoNombrePrg = txtNombrePrograma.getText();
+			}
+		});
 
 		btnBorrarPrograma = new JButton("Borrar");
 		btnBorrarPrograma.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				limpiarCamposPrograma();
 				try {
-					controlador.borrarPrograma(programaActual);
+					boolean eliminado = controlador.eliminarPrograma(programaActual);
+					respuestaEliminadoPrograma(eliminado);
+					jListProgramas.setModel(controlador.getListModel(nombreTabla));
 				} catch (InterruptedException | ExecutionException e1) {
 					e1.printStackTrace();
 				}
@@ -312,6 +377,19 @@ public class VentanaDashboard extends JFrame {
 		btnActualizarPrograma.setBackground(Color.GRAY);
 		btnActualizarPrograma.setBounds(625, 119, 150, 50);
 		panelProgramas.add(btnActualizarPrograma);
+
+		lblTituloProgramas = new JLabel("Programas");
+		lblTituloProgramas.setForeground(Color.BLACK);
+		lblTituloProgramas.setFont(new Font("Roboto", Font.BOLD, 24));
+		lblTituloProgramas.setBounds(49, 10, 257, 50);
+		panelProgramas.add(lblTituloProgramas);
+
+		lblRespuestaPrograma = new JLabel("");
+		lblRespuestaPrograma.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblRespuestaPrograma.setForeground(Color.GREEN);
+		lblRespuestaPrograma.setFont(new Font("Roboto", Font.PLAIN, 14));
+		lblRespuestaPrograma.setBounds(621, 221, 328, 27);
+		panelProgramas.add(lblRespuestaPrograma);
 
 		panelTerapeutas = new JPanel();
 		panelTerapeutas.setBackground(new Color(255, 250, 240));
@@ -433,7 +511,7 @@ public class VentanaDashboard extends JFrame {
 		lblRespuestaTerapeuta.setHorizontalAlignment(SwingConstants.RIGHT);
 		lblRespuestaTerapeuta.setForeground(Color.GREEN);
 		lblRespuestaTerapeuta.setFont(new Font("Roboto", Font.PLAIN, 14));
-		lblRespuestaTerapeuta.setBounds(621, 230, 328, 27);
+		lblRespuestaTerapeuta.setBounds(621, 221, 328, 27);
 		panelTerapeutas.add(lblRespuestaTerapeuta);
 
 		btnActualizarTerapeuta = new JButton("Actualizar");
@@ -717,6 +795,26 @@ public class VentanaDashboard extends JFrame {
 		bg.add(panelCitas);
 	}
 
+	protected void respuestaEliminadoPrograma(boolean response) {
+		if (response) {
+			lblRespuestaPrograma.setText("Programa eliminado correctamente");
+			try {
+				TimeUnit.SECONDS.sleep(4);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			lblRespuestaPrograma.setText("");
+		} else {
+			lblRespuestaPrograma.setText("No se pudo eliminar Programa");
+			try {
+				TimeUnit.SECONDS.sleep(4);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			lblRespuestaPrograma.setText("");
+		}
+	}
+
 	/**
 	 * Metodo para informar el usuario sobre su petición de alta en Terapeutas
 	 * 
@@ -734,6 +832,26 @@ public class VentanaDashboard extends JFrame {
 			lblRespuestaTerapeuta.setText("Nombre o Apellidos no pueden estar vacíos");
 			break;
 
+		}
+	}
+
+	protected void respuestaAltaPrograma(boolean resonse) {
+		if (resonse) {
+			lblRespuestaPrograma.setText("Programa añadidido correctamente");
+			try {
+				TimeUnit.SECONDS.sleep(4);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			lblRespuestaPrograma.setText("");
+		} else {
+			lblRespuestaPrograma.setText("No se pudo dar de alta Programa");
+			try {
+				TimeUnit.SECONDS.sleep(4);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			lblRespuestaPrograma.setText("");
 		}
 	}
 

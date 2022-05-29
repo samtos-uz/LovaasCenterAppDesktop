@@ -26,6 +26,7 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
@@ -207,25 +208,16 @@ public class FirebaseController {
 	 * @param programa
 	 * @return <code>true</code> si se pudo dar de alta correctamente,
 	 *         <code>false</code> en caso contrario
+	 * @throws ExecutionException
+	 * @throws InterruptedException
 	 */
-	public boolean altaPrograma(Programa programa) {
+	public boolean altaPrograma(Programa programa) throws InterruptedException, ExecutionException {
 		boolean alta = false;
-		ApiFuture<DocumentReference> addedDocRef = db.getFirebase().collection("programas").add(programa);
-		// future.get() blocks on response
-		try {
-			String id = addedDocRef.get().getId();
-			System.out.println("Added document with ID: " + id);
-			programa.setNombre(id);// asigno id para futura actualizacion
-			System.out.println(programa.toString());
-			if (!id.isEmpty())
-				alta = true;
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		ApiFuture<WriteResult> future = db.getFirebase().collection("programasAndroid").document(programa.getNombre())
+				.set(null); // future.get() blocks on response
+		System.out.println("Alta programa correcta: " + future.get().getUpdateTime());
+		alta = true;
+
 		return alta;
 	}
 
@@ -340,12 +332,15 @@ public class FirebaseController {
 	 * @throws ExecutionException
 	 * @throws InterruptedException
 	 */
-	public void eliminarPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
+	public boolean eliminarPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
+		boolean eliminado = false;
 		// asynchronously delete a document
-		ApiFuture<WriteResult> writeResult = db.getFirebase().collection("programas")
+		ApiFuture<WriteResult> writeResult = db.getFirebase().collection("programasAndroid")
 				.document(programaActual.getNombre()).delete();
-		// ...
-		System.out.println("Update time : " + writeResult.get().getUpdateTime());
+		System.out.println("Programa eliminado : " + writeResult.get().getUpdateTime());
+		eliminado = true;
+
+		return eliminado;
 	}
 
 	/**
@@ -382,8 +377,7 @@ public class FirebaseController {
 	 * @throws InterruptedException
 	 */
 	public void obtenerUnidades(Programa programaActual) throws InterruptedException, ExecutionException {
-		DocumentReference docRef = db.getFirebase().collection("programasAndroid")
-				.document(programaActual.getNombre());
+		DocumentReference docRef = db.getFirebase().collection("programasAndroid").document(programaActual.getNombre());
 		ApiFuture<DocumentSnapshot> future = docRef.get();
 		DocumentSnapshot document = future.get();
 		Programa programaBd = null;
@@ -396,6 +390,50 @@ public class FirebaseController {
 		} else {
 			System.out.println("No se encontró programa");
 		}
+	}
+
+	/**
+	 * Actualiza los campos del objeto en BD.
+	 * 
+	 * @param programaActual
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public void actualizarUnidadesPrograma(Programa programaActual) throws InterruptedException, ExecutionException {
+		// Update an existing document
+		DocumentReference docRef = db.getFirebase().collection("programasAndroid").document(programaActual.getNombre());
+
+		// (async) Update one field
+		TreeMap<String, Object> unidades = programaActual.getUnidades();
+
+		ApiFuture<WriteResult> future = docRef.update(unidades);
+
+		WriteResult result = future.get();
+		System.out.println("Unidad añadida: " + result);
+	}
+
+	/**
+	 * Elimina una unidad (campo) de un documento Programa de la coleccion programas
+	 * android
+	 * 
+	 * @param programaActual con la id para acceder al documento
+	 * @param key            Clave del campo a borrar
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public void eliminarUnidadPrograma(Programa programaActual, String key)
+			throws InterruptedException, ExecutionException {
+		// Update an existing document
+		DocumentReference docRef = db.getFirebase().collection("programasAndroid").document(programaActual.getNombre());
+
+		// (async) Update one field
+		TreeMap<String, Object> updates = new TreeMap<String, Object>();
+		updates.put(key, FieldValue.delete());
+
+		ApiFuture<WriteResult> future = docRef.update(updates);
+
+		WriteResult result = future.get();
+		System.out.println("Unidad eliminada: " + result);
 	}
 
 	/*
