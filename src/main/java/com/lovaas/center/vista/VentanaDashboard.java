@@ -63,19 +63,13 @@ public class VentanaDashboard extends JFrame {
 	private int xMouse, yMouse;
 	private JPanel panelTerapeutas;
 	private JPanel panelProgramas;
-	private JPanel panelInformes;
 	private JLabel iconTerapeutas;
 	private JLabel iconProgramas;
-	private JLabel lblInformes;
 	private JLabel lblProgramas;
 	private JLabel lblTerapeutas;
-	private JLabel iconInformes;
-	private JLabel iconCitas;
 	private JLabel lblLogout;
 	private JLabel iconLogout;
-	private JLabel lblCitas;
 	private JLabel lblExit;
-	private JPanel panelCitas;
 	private JPanel crudTerapeutas;
 	private JTable tableTerapeutas;
 	private JTable tableInformes;
@@ -90,7 +84,7 @@ public class VentanaDashboard extends JFrame {
 	private JTextField txtApellidos;
 	private JTextField txtCiudad;
 	private JTextField txtTelf;
-	private JButton btnAlta;
+	private JButton btnAltaTerapeuta;
 	private JLabel lblRespuestaTerapeuta;
 	private JLabel lblNombrePrograma;
 	private JTextField txtNombrePrograma;
@@ -104,8 +98,9 @@ public class VentanaDashboard extends JFrame {
 	private JList<String> jLIstUnidades;
 	private JLabel lblListadoUnidades;
 	private JButton btnEliminarUnidad;
-	private JLabel lblTituloProgramas;
 	private JLabel lblRespuestaPrograma;
+	private JPanel panelCamposTp;
+	private JPanel panelCamposPrg;
 
 	public ControladorVentanas getControlador() {
 		return controlador;
@@ -129,6 +124,10 @@ public class VentanaDashboard extends JFrame {
 		bg.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(bg);
 		bg.setLayout(null);
+
+		// Sacar ruta absoluta
+		currentRelativePath = Paths.get("");
+		rutaImg = currentRelativePath.toAbsolutePath().toString();
 
 		JPanel barraAcciones = new JPanel();
 		barraAcciones.setBorder(new MatteBorder(0, 0, 2, 0, (Color) new Color(192, 192, 192)));
@@ -200,6 +199,229 @@ public class VentanaDashboard extends JFrame {
 		barraAcciones.add(lblMinimizar);
 
 		panelProgramas = new JPanel();
+		panelProgramas.setVisible(false);// Para que no se vea cuando inicia la aplicacion
+
+		panelTerapeutas = new JPanel();
+		panelTerapeutas.setBackground(new Color(255, 250, 240));
+		panelTerapeutas.setBounds(275, 50, 1005, 670);
+		bg.add(panelTerapeutas);
+		panelTerapeutas.setLayout(null);
+
+		crudTerapeutas = new JPanel();
+		crudTerapeutas.setBounds(49, 260, 900, 380);
+		panelTerapeutas.add(crudTerapeutas);
+		crudTerapeutas.setLayout(null);
+
+		JLabel lblListadoTerapeutas = new JLabel("Listado Terapeutas");
+		lblListadoTerapeutas.setForeground(Color.DARK_GRAY);
+		lblListadoTerapeutas.setFont(new Font("Roboto", Font.BOLD, 18));
+		lblListadoTerapeutas.setBounds(10, 10, 207, 40);
+		crudTerapeutas.add(lblListadoTerapeutas);
+
+		JScrollPane scrollPaneTrp = new JScrollPane();
+		scrollPaneTrp.setBounds(10, 60, 880, 310);
+		crudTerapeutas.add(scrollPaneTrp);
+
+		tableTerapeutas = new JTable();
+		tableTerapeutas.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				lblRespuestaTerapeuta.setText("");
+
+				int fila = tableTerapeutas.getSelectedRow();
+				txtNombre.setText((String) tableTerapeutas.getValueAt(fila, 3));
+				txtApellidos.setText((String) tableTerapeutas.getValueAt(fila, 0));
+				txtCiudad.setText((String) tableTerapeutas.getValueAt(fila, 1));
+				txtTelf.setText((String) tableTerapeutas.getValueAt(fila, 2));
+				// Setteo el objeto actual para obtener su id para su posible actualizacion
+				terapeutaActual.setNombre(txtNombre.getText());
+				terapeutaActual.setApellidos(txtApellidos.getText());
+				terapeutaActual.setCiudad(txtCiudad.getText());
+				terapeutaActual.setTelefono(txtTelf.getText());
+				try {
+					controlador.obtenerIdTerapeuta(terapeutaActual);
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		scrollPaneTrp.setViewportView(tableTerapeutas);
+
+		JLabel lblNombre = new JLabel("Nombre");
+		lblNombre.setHorizontalTextPosition(SwingConstants.CENTER);
+		lblNombre.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNombre.setForeground(Color.BLACK);
+		lblNombre.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblNombre.setBounds(81, 64, 150, 40);
+		panelTerapeutas.add(lblNombre);
+
+		JLabel lblApellidos = new JLabel("Apellidos");
+		lblApellidos.setHorizontalTextPosition(SwingConstants.CENTER);
+		lblApellidos.setHorizontalAlignment(SwingConstants.CENTER);
+		lblApellidos.setForeground(Color.BLACK);
+		lblApellidos.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblApellidos.setBounds(312, 64, 150, 40);
+		panelTerapeutas.add(lblApellidos);
+
+		JLabel lblCiudad = new JLabel("Ciudad");
+		lblCiudad.setHorizontalTextPosition(SwingConstants.CENTER);
+		lblCiudad.setHorizontalAlignment(SwingConstants.CENTER);
+		lblCiudad.setForeground(Color.BLACK);
+		lblCiudad.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblCiudad.setBounds(543, 64, 150, 40);
+		panelTerapeutas.add(lblCiudad);
+
+		JLabel lblTelefono = new JLabel("Telefono");
+		lblTelefono.setHorizontalTextPosition(SwingConstants.CENTER);
+		lblTelefono.setHorizontalAlignment(SwingConstants.CENTER);
+		lblTelefono.setForeground(Color.BLACK);
+		lblTelefono.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblTelefono.setBounds(774, 64, 150, 40);
+		panelTerapeutas.add(lblTelefono);
+
+		txtNombre = new JTextField();
+		txtNombre.setFont(new Font("Roboto", Font.PLAIN, 14));
+		txtNombre.setHorizontalAlignment(SwingConstants.CENTER);
+		txtNombre.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				lblRespuestaTerapeuta.setText("");
+			}
+		});
+		txtNombre.setBounds(81, 114, 150, 40);
+		panelTerapeutas.add(txtNombre);
+		txtNombre.setColumns(10);
+
+		txtApellidos = new JTextField();
+		txtApellidos.setFont(new Font("Roboto", Font.PLAIN, 14));
+		txtApellidos.setHorizontalAlignment(SwingConstants.CENTER);
+		txtApellidos.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				lblRespuestaTerapeuta.setText("");
+			}
+		});
+		txtApellidos.setColumns(10);
+		txtApellidos.setBounds(312, 114, 150, 40);
+		panelTerapeutas.add(txtApellidos);
+
+		txtCiudad = new JTextField();
+		txtCiudad.setFont(new Font("Roboto", Font.PLAIN, 14));
+		txtCiudad.setHorizontalAlignment(SwingConstants.CENTER);
+		txtCiudad.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				lblRespuestaTerapeuta.setText("");
+			}
+		});
+		txtCiudad.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				lblRespuestaPrograma.setText("");
+			}
+		});
+		txtCiudad.setColumns(10);
+		txtCiudad.setBounds(543, 114, 150, 40);
+		panelTerapeutas.add(txtCiudad);
+
+		txtTelf = new JTextField();
+		txtTelf.setFont(new Font("Roboto", Font.PLAIN, 14));
+		txtTelf.setHorizontalAlignment(SwingConstants.CENTER);
+		txtTelf.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				lblRespuestaTerapeuta.setText("");
+			}
+		});
+		txtTelf.setColumns(10);
+		txtTelf.setBounds(774, 114, 150, 40);
+		panelTerapeutas.add(txtTelf);
+
+		Image imgAlta = new ImageIcon(rutaImg + "/src/main/resources/img/agregar_verde_50.png").getImage();
+		ImageIcon iconAlta = new ImageIcon(imgAlta.getScaledInstance(45, 45, Image.SCALE_SMOOTH));
+
+		btnAltaTerapeuta = new JButton(iconAlta);
+		btnAltaTerapeuta.setForeground(Color.WHITE);
+		btnAltaTerapeuta.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnAltaTerapeuta.setText("Alta");
+		btnAltaTerapeuta.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String nombre = txtNombre.getText();
+				String apellidos = txtApellidos.getText();
+				String ciudad = txtCiudad.getText();
+				String telf = txtTelf.getText();
+				Terapeuta terapeuta = new Terapeuta(nombre, apellidos, ciudad, telf);
+				limpiarCamposTerapeuta();
+				int alta = controlador.altaTerapeuta(terapeuta);
+				try {
+					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+				respuestaAltaTerapeuta(alta);
+
+			}
+		});
+		btnAltaTerapeuta.setBackground(new Color(0, 128, 0));
+		btnAltaTerapeuta.setBounds(262, 180, 150, 50);
+		panelTerapeutas.add(btnAltaTerapeuta);
+
+		lblRespuestaTerapeuta = new JLabel("");
+		lblRespuestaTerapeuta.setHorizontalTextPosition(SwingConstants.LEADING);
+		lblRespuestaTerapeuta.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblRespuestaTerapeuta.setForeground(Color.GRAY);
+		lblRespuestaTerapeuta.setFont(new Font("Roboto", Font.PLAIN, 14));
+		lblRespuestaTerapeuta.setBounds(49, 230, 328, 27);
+		panelTerapeutas.add(lblRespuestaTerapeuta);
+
+		btnActualizarTerapeuta = new JButton("Actualizar");
+		btnActualizarTerapeuta.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String nombre = txtNombre.getText();
+				String apellidos = txtApellidos.getText();
+				String ciudad = txtCiudad.getText();
+				String telf = txtTelf.getText();
+				// Actualizamos los datos del objeto
+				terapeutaActual.setNombre(nombre);
+				terapeutaActual.setApellidos(apellidos);
+				terapeutaActual.setCiudad(ciudad);
+				terapeutaActual.setTelefono(telf);
+				limpiarCamposTerapeuta();
+				try {
+					boolean update = controlador.actualizarTerapeuta(terapeutaActual);// Actualizamos en bd
+					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnActualizarTerapeuta.setForeground(new Color(255, 250, 240));
+		btnActualizarTerapeuta.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnActualizarTerapeuta.setBackground(Color.GRAY);
+		btnActualizarTerapeuta.setBounds(422, 180, 150, 50);
+		panelTerapeutas.add(btnActualizarTerapeuta);
+
+		btnBorrarTerapeuta = new JButton("Borrar");
+		btnBorrarTerapeuta.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				limpiarCamposTerapeuta();
+				try {
+					controlador.eliminarTerapeuta(terapeutaActual);
+					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
+				} catch (InterruptedException | ExecutionException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnBorrarTerapeuta.setForeground(new Color(255, 250, 240));
+		btnBorrarTerapeuta.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
+		btnBorrarTerapeuta.setBackground(Color.RED);
+		btnBorrarTerapeuta.setBounds(583, 180, 150, 50);
+		panelTerapeutas.add(btnBorrarTerapeuta);
+
+		panelCamposTp = new JPanel();
+		panelCamposTp.setBounds(49, 50, 914, 120);
+		panelTerapeutas.add(panelCamposTp);
+		panelCamposTp.setLayout(null);
 		panelProgramas.setBackground(new Color(255, 250, 240));
 		panelProgramas.setBounds(275, 50, 1005, 670);
 		bg.add(panelProgramas);
@@ -227,7 +449,7 @@ public class VentanaDashboard extends JFrame {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if (!jListProgramas.isSelectionEmpty()) {
-					
+
 					String nombrePrograma = jListProgramas.getSelectedValue();
 					txtNombrePrograma.setText(nombrePrograma);
 					// setteo nombre (id) al programa para despues obtener sus unidades
@@ -319,12 +541,14 @@ public class VentanaDashboard extends JFrame {
 		lblNombrePrograma.setHorizontalAlignment(SwingConstants.CENTER);
 		lblNombrePrograma.setForeground(Color.BLACK);
 		lblNombrePrograma.setFont(new Font("Roboto", Font.PLAIN, 18));
-		lblNombrePrograma.setBounds(49, 124, 195, 40);
+		lblNombrePrograma.setBounds(59, 89, 195, 40);
 		panelProgramas.add(lblNombrePrograma);
 
 		txtNombrePrograma = new JTextField();
+		txtNombrePrograma.setHorizontalAlignment(SwingConstants.CENTER);
+		txtNombrePrograma.setFont(new Font("Roboto", Font.PLAIN, 14));
 		txtNombrePrograma.setColumns(10);
-		txtNombrePrograma.setBounds(246, 124, 195, 40);
+		txtNombrePrograma.setBounds(256, 89, 195, 40);
 		panelProgramas.add(txtNombrePrograma);
 
 		btnAltaPrograma = new JButton("Alta");
@@ -340,11 +564,10 @@ public class VentanaDashboard extends JFrame {
 				}
 			}
 		});
-		;
 		btnAltaPrograma.setForeground(new Color(255, 250, 240));
 		btnAltaPrograma.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
 		btnAltaPrograma.setBackground(new Color(0, 128, 0));
-		btnAltaPrograma.setBounds(451, 119, 150, 50);
+		btnAltaPrograma.setBounds(461, 82, 150, 50);
 		panelProgramas.add(btnAltaPrograma);
 
 		btnActualizarPrograma = new JButton("Actualizar");
@@ -370,194 +593,27 @@ public class VentanaDashboard extends JFrame {
 		btnBorrarPrograma.setForeground(new Color(255, 250, 240));
 		btnBorrarPrograma.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
 		btnBorrarPrograma.setBackground(Color.RED);
-		btnBorrarPrograma.setBounds(796, 119, 150, 50);
+		btnBorrarPrograma.setBounds(804, 82, 150, 50);
 		panelProgramas.add(btnBorrarPrograma);
 		btnActualizarPrograma.setForeground(new Color(255, 250, 240));
 		btnActualizarPrograma.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
 		btnActualizarPrograma.setBackground(Color.GRAY);
-		btnActualizarPrograma.setBounds(625, 119, 150, 50);
+		btnActualizarPrograma.setBounds(631, 82, 150, 50);
 		panelProgramas.add(btnActualizarPrograma);
 
-		lblTituloProgramas = new JLabel("Programas");
-		lblTituloProgramas.setForeground(Color.BLACK);
-		lblTituloProgramas.setFont(new Font("Roboto", Font.BOLD, 24));
-		lblTituloProgramas.setBounds(49, 10, 257, 50);
-		panelProgramas.add(lblTituloProgramas);
-
 		lblRespuestaPrograma = new JLabel("");
+		lblRespuestaPrograma.setHorizontalTextPosition(SwingConstants.LEADING);
 		lblRespuestaPrograma.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblRespuestaPrograma.setForeground(Color.GREEN);
+		lblRespuestaPrograma.setForeground(Color.GRAY);
 		lblRespuestaPrograma.setFont(new Font("Roboto", Font.PLAIN, 14));
-		lblRespuestaPrograma.setBounds(621, 221, 328, 27);
+		lblRespuestaPrograma.setBounds(49, 230, 328, 27);
 		panelProgramas.add(lblRespuestaPrograma);
 
-		panelTerapeutas = new JPanel();
-		panelTerapeutas.setBackground(new Color(255, 250, 240));
-		panelTerapeutas.setBounds(275, 50, 1005, 670);
-		bg.add(panelTerapeutas);
-		panelTerapeutas.setLayout(null);
-
-		crudTerapeutas = new JPanel();
-		crudTerapeutas.setBounds(49, 260, 900, 380);
-		panelTerapeutas.add(crudTerapeutas);
-		crudTerapeutas.setLayout(null);
-
-		JLabel lblListadoTerapeutas = new JLabel("Listado Terapeutas");
-		lblListadoTerapeutas.setForeground(Color.DARK_GRAY);
-		lblListadoTerapeutas.setFont(new Font("Roboto", Font.BOLD, 18));
-		lblListadoTerapeutas.setBounds(10, 10, 207, 40);
-		crudTerapeutas.add(lblListadoTerapeutas);
-
-		JScrollPane scrollPaneTrp = new JScrollPane();
-		scrollPaneTrp.setBounds(10, 60, 880, 310);
-		crudTerapeutas.add(scrollPaneTrp);
-
-		tableTerapeutas = new JTable();
-		tableTerapeutas.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				int fila = tableTerapeutas.getSelectedRow();
-				txtNombre.setText((String) tableTerapeutas.getValueAt(fila, 3));
-				txtApellidos.setText((String) tableTerapeutas.getValueAt(fila, 0));
-				txtCiudad.setText((String) tableTerapeutas.getValueAt(fila, 1));
-				txtTelf.setText((String) tableTerapeutas.getValueAt(fila, 2));
-				// Setteo el objeto actual para obtener su id para su posible actualizacion
-				terapeutaActual.setNombre(txtNombre.getText());
-				terapeutaActual.setApellidos(txtApellidos.getText());
-				terapeutaActual.setCiudad(txtCiudad.getText());
-				terapeutaActual.setTelefono(txtTelf.getText());
-				try {
-					controlador.obtenerIdTerapeuta(terapeutaActual);
-				} catch (InterruptedException | ExecutionException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		scrollPaneTrp.setViewportView(tableTerapeutas);
-
-		JLabel lblNombre = new JLabel("Nombre");
-		lblNombre.setHorizontalAlignment(SwingConstants.CENTER);
-		lblNombre.setForeground(Color.BLACK);
-		lblNombre.setFont(new Font("Roboto", Font.PLAIN, 18));
-		lblNombre.setBounds(81, 64, 150, 40);
-		panelTerapeutas.add(lblNombre);
-
-		JLabel lblApellidos = new JLabel("Apellidos");
-		lblApellidos.setHorizontalAlignment(SwingConstants.CENTER);
-		lblApellidos.setForeground(Color.BLACK);
-		lblApellidos.setFont(new Font("Roboto", Font.PLAIN, 18));
-		lblApellidos.setBounds(312, 64, 150, 40);
-		panelTerapeutas.add(lblApellidos);
-
-		JLabel lblCiudad = new JLabel("Ciudad");
-		lblCiudad.setHorizontalAlignment(SwingConstants.CENTER);
-		lblCiudad.setForeground(Color.BLACK);
-		lblCiudad.setFont(new Font("Roboto", Font.PLAIN, 18));
-		lblCiudad.setBounds(543, 64, 150, 40);
-		panelTerapeutas.add(lblCiudad);
-
-		JLabel lblTelefono = new JLabel("Telefono");
-		lblTelefono.setHorizontalAlignment(SwingConstants.CENTER);
-		lblTelefono.setForeground(Color.BLACK);
-		lblTelefono.setFont(new Font("Roboto", Font.PLAIN, 18));
-		lblTelefono.setBounds(774, 64, 150, 40);
-		panelTerapeutas.add(lblTelefono);
-
-		txtNombre = new JTextField();
-		txtNombre.setBounds(81, 114, 150, 40);
-		panelTerapeutas.add(txtNombre);
-		txtNombre.setColumns(10);
-
-		txtApellidos = new JTextField();
-		txtApellidos.setColumns(10);
-		txtApellidos.setBounds(312, 114, 150, 40);
-		panelTerapeutas.add(txtApellidos);
-
-		txtCiudad = new JTextField();
-		txtCiudad.setColumns(10);
-		txtCiudad.setBounds(543, 114, 150, 40);
-		panelTerapeutas.add(txtCiudad);
-
-		txtTelf = new JTextField();
-		txtTelf.setColumns(10);
-		txtTelf.setBounds(774, 114, 150, 40);
-		panelTerapeutas.add(txtTelf);
-
-		btnAlta = new JButton("Alta");
-		btnAlta.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String nombre = txtNombre.getText();
-				String apellidos = txtApellidos.getText();
-				String ciudad = txtCiudad.getText();
-				String telf = txtTelf.getText();
-				Terapeuta terapeuta = new Terapeuta(nombre, apellidos, ciudad, telf);
-				limpiarCamposTerapeuta();
-				int alta = controlador.altaTerapeuta(terapeuta);
-				try {
-					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
-				} catch (InterruptedException | ExecutionException e1) {
-					e1.printStackTrace();
-				}
-				respuestaAltaTerapeuta(alta);
-			}
-		});
-		btnAlta.setForeground(new Color(255, 250, 240));
-		btnAlta.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
-		btnAlta.setBackground(new Color(0, 128, 0));
-		btnAlta.setBounds(262, 176, 150, 50);
-		panelTerapeutas.add(btnAlta);
-
-		lblRespuestaTerapeuta = new JLabel("");
-		lblRespuestaTerapeuta.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblRespuestaTerapeuta.setForeground(Color.GREEN);
-		lblRespuestaTerapeuta.setFont(new Font("Roboto", Font.PLAIN, 14));
-		lblRespuestaTerapeuta.setBounds(621, 221, 328, 27);
-		panelTerapeutas.add(lblRespuestaTerapeuta);
-
-		btnActualizarTerapeuta = new JButton("Actualizar");
-		btnActualizarTerapeuta.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String nombre = txtNombre.getText();
-				String apellidos = txtApellidos.getText();
-				String ciudad = txtCiudad.getText();
-				String telf = txtTelf.getText();
-				// Actualizamos los datos del objeto
-				terapeutaActual.setNombre(nombre);
-				terapeutaActual.setApellidos(apellidos);
-				terapeutaActual.setCiudad(ciudad);
-				terapeutaActual.setTelefono(telf);
-				limpiarCamposTerapeuta();
-				try {
-					boolean update = controlador.actualizarTerapeuta(terapeutaActual);// Actualizamos en bd
-					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
-				} catch (InterruptedException | ExecutionException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		btnActualizarTerapeuta.setForeground(new Color(255, 250, 240));
-		btnActualizarTerapeuta.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
-		btnActualizarTerapeuta.setBackground(Color.GRAY);
-		btnActualizarTerapeuta.setBounds(436, 176, 150, 50);
-		panelTerapeutas.add(btnActualizarTerapeuta);
-
-		btnBorrarTerapeuta = new JButton("Borrar");
-		btnBorrarTerapeuta.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				limpiarCamposTerapeuta();
-				try {
-					controlador.eliminarTerapeuta(terapeutaActual);
-					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
-				} catch (InterruptedException | ExecutionException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		btnBorrarTerapeuta.setForeground(new Color(255, 250, 240));
-		btnBorrarTerapeuta.setFont(new Font("Roboto Condensed", Font.BOLD, 22));
-		btnBorrarTerapeuta.setBackground(Color.RED);
-		btnBorrarTerapeuta.setBounds(607, 176, 150, 50);
-		panelTerapeutas.add(btnBorrarTerapeuta);
+		panelCamposPrg = new JPanel();
+		panelCamposPrg.setLayout(null);
+		panelCamposPrg.setBounds(49, 50, 914, 120);
+		panelProgramas.add(panelCamposPrg);
+		;
 
 		menuLateral = new MenuPanel();
 		// menuLateral.setOpaque(false);
@@ -566,9 +622,9 @@ public class VentanaDashboard extends JFrame {
 		menuLateral.setLayout(null);
 
 		JLabel lblTitleApp = new JLabel("LÖVAAS\r\n CENTER");
-		// Sacar ruta absoluta
-		currentRelativePath = Paths.get("");
-		rutaImg = currentRelativePath.toAbsolutePath().toString();
+//		// Sacar ruta absoluta
+//		currentRelativePath = Paths.get("");
+//		rutaImg = currentRelativePath.toAbsolutePath().toString();
 		ImageIcon logoApp = new ImageIcon(rutaImg + "/src/main/resources/img/logo_lovaas_blanco.png");
 		// Redimensionar el icono
 		Image image = logoApp.getImage();
@@ -615,42 +671,18 @@ public class VentanaDashboard extends JFrame {
 		iconProgramas.setIcon(programasIcon);
 		iconProgramas.setBounds(20, 150, 30, 30);
 		menuLateral.add(iconProgramas);
-
-		iconInformes = new JLabel("");
-		iconInformes.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				visibleInformes();
-			}
-		});
-		iconInformes.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		// Sacar ruta absoluta
 		ImageIcon informesIcon = new ImageIcon(rutaImg + "/src/main/resources/img/informes_icon.png");
 		// Redimensionar el icono
 		Image imgInf = informesIcon.getImage();
 		Image newImgInf = imgInf.getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH);
 		informesIcon = new ImageIcon(newImgInf);
-		iconInformes.setIcon(informesIcon);
-		iconInformes.setBounds(20, 200, 30, 30);
-		menuLateral.add(iconInformes);
-
-		iconCitas = new JLabel("");
-		iconCitas.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				visibleCitas();
-			}
-		});
-		iconCitas.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		// Sacar ruta absoluta
 		ImageIcon citasIcon = new ImageIcon(rutaImg + "/src/main/resources/img/citas_icon.png");
 		// Redimensionar el icono
 		Image imgCts = citasIcon.getImage();
 		Image newImgCts = imgCts.getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH);
 		citasIcon = new ImageIcon(newImgCts);
-		iconCitas.setIcon(citasIcon);
-		iconCitas.setBounds(20, 252, 30, 30);
-		menuLateral.add(iconCitas);
 
 		lblTerapeutas = new JLabel("Terapeutas");
 		lblTerapeutas.addMouseListener(new MouseAdapter() {
@@ -677,32 +709,6 @@ public class VentanaDashboard extends JFrame {
 		lblProgramas.setFont(new Font("Roboto", Font.PLAIN, 18));
 		lblProgramas.setBounds(60, 145, 207, 40);
 		menuLateral.add(lblProgramas);
-
-		lblInformes = new JLabel("Informes");
-		lblInformes.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				visibleInformes();
-			}
-		});
-		lblInformes.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		lblInformes.setForeground(Color.WHITE);
-		lblInformes.setFont(new Font("Roboto", Font.PLAIN, 18));
-		lblInformes.setBounds(60, 195, 207, 40);
-		menuLateral.add(lblInformes);
-
-		lblCitas = new JLabel("Citas");
-		lblCitas.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				visibleCitas();
-			}
-		});
-		lblCitas.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		lblCitas.setForeground(Color.WHITE);
-		lblCitas.setFont(new Font("Roboto", Font.PLAIN, 18));
-		lblCitas.setBounds(60, 247, 207, 40);
-		menuLateral.add(lblCitas);
 
 		lblLogout = new JLabel("Cerrar sesión");
 		lblLogout.addMouseListener(new MouseAdapter() {
@@ -783,17 +789,37 @@ public class VentanaDashboard extends JFrame {
 				}
 			}
 		});
-
-		panelInformes = new JPanel();
-		panelInformes.setBackground(Color.MAGENTA);
-		panelInformes.setBounds(275, 50, 1005, 670);
-		bg.add(panelInformes);
-
-		panelCitas = new JPanel();
-		panelCitas.setBackground(Color.BLUE);
-		panelCitas.setBounds(276, 50, 1005, 670);
-		bg.add(panelCitas);
 	}
+
+//	protected boolean comprobarCamposTp() {
+//		boolean correcto = false;
+//		String response = "";
+//
+//		String nombre = txtNombre.getText();
+//		String apellidos = txtApellidos.getText();
+//		String ciudad = txtCiudad.getText();
+//		String telf = txtTelf.getText();
+//
+//		if (nombre.isEmpty())
+//			response = "Nombre está vacío";
+//		else if (apellidos.isEmpty())
+//			response = "Apellidos está vacío";
+//		else if (ciudad.isEmpty())
+//			response = "Ciudad está vacío";
+//		else if (telf.isEmpty())
+//			response = "Teléfono está vacío";
+//		else
+//			correcto = true;
+//
+//		if (!correcto)
+//			mostrarErrorUsuario(response);
+//
+//		return correcto;
+//	}
+//
+//	private void mostrarErrorUsuario(String response) {
+//		lblRespuestaTerapeuta.setText(response);
+//	}
 
 	protected void respuestaEliminadoPrograma(boolean response) {
 		if (response) {
@@ -822,14 +848,23 @@ public class VentanaDashboard extends JFrame {
 	 */
 	protected void respuestaAltaTerapeuta(int alta) {
 		switch (alta) {
-		case 0:
-			lblRespuestaTerapeuta.setText("Error al dar de alta");
-			break;
-		case 1:
-			lblRespuestaTerapeuta.setText("Alta correctamente");
-			break;
 		case -1:
-			lblRespuestaTerapeuta.setText("Nombre o Apellidos no pueden estar vacíos");
+			lblRespuestaTerapeuta.setText("Ocurrió un error al dar de alta");
+			break;
+		case 0:
+			lblRespuestaTerapeuta.setText("Terapeuta registrado correctamente");
+			break;
+		case 2:
+			lblRespuestaTerapeuta.setText("Nombre está vacío");
+			break;
+		case 3:
+			lblRespuestaTerapeuta.setText("Los apellidos están vacíos");
+			break;
+		case 4:
+			lblRespuestaTerapeuta.setText("Ciudad está vacío");
+			break;
+		case 5:
+			lblRespuestaTerapeuta.setText("Teléfono está vacío");
 			break;
 
 		}
@@ -877,30 +912,6 @@ public class VentanaDashboard extends JFrame {
 			e1.printStackTrace();
 		}
 		panelTerapeutas.setVisible(true);
-		panelInformes.setVisible(false);
-		panelCitas.setVisible(false);
-		panelProgramas.setVisible(false);
-	}
-
-	/**
-	 * Metodo para hacer visible solo el panel de informes
-	 */
-	protected void visibleInformes() {
-		nombreTabla = "informes";
-		panelTerapeutas.setVisible(false);
-		panelInformes.setVisible(true);
-		panelCitas.setVisible(false);
-		panelProgramas.setVisible(false);
-	}
-
-	/**
-	 * Metodo para hacer visible solo el panel de citas
-	 */
-	protected void visibleCitas() {
-		nombreTabla = "citas";
-		panelTerapeutas.setVisible(false);
-		panelInformes.setVisible(false);
-		panelCitas.setVisible(true);
 		panelProgramas.setVisible(false);
 	}
 
@@ -917,8 +928,6 @@ public class VentanaDashboard extends JFrame {
 		}
 
 		panelTerapeutas.setVisible(false);
-		panelInformes.setVisible(false);
-		panelCitas.setVisible(false);
 		panelProgramas.setVisible(true);
 	}
 

@@ -122,13 +122,34 @@ public class ControladorVentanas {
 	 */
 
 	public int altaTerapeuta(Terapeuta terapeuta) {
-		int response = 0;
-		// Verificación de campos para poder construir el id.
-		if (terapeuta.getNombre().isEmpty() || terapeuta.getApellidos().isEmpty()) {
-			response = -1;
+
+		int response = comprobarCamposTerapeuta(terapeuta);
+		if (response == 1) {
+			response = fbc.altaTerapeuta(terapeuta) ? 0 : -1; // alta correctamente 0, -1 en caso de fallo
 		}
-		response = fbc.altaTerapeuta(terapeuta) ? 1 : 0; // si se da de alta correctamente devuelve 1, 0 en caso
-															// contrario
+		return response;
+	}
+
+	/**
+	 * Comprueba campos de {@link Terapeuta} antes de dar de alta, informa si algun
+	 * campo del mismo está vacío
+	 * 
+	 * @param terapeuta
+	 * @return 1 si los campos son correctos. 2, si el nombre esta vacio. 3 si los
+	 *         apellidos estan vacios. 4 si la ciudad está vacia. 5 el telefono esta
+	 *         vacio.
+	 */
+	private int comprobarCamposTerapeuta(Terapeuta terapeuta) {
+		int response = 1;
+		if (terapeuta.getNombre().isEmpty()) {
+			response = 2;
+		} else if (terapeuta.getApellidos().isEmpty()) {
+			response = 3;
+		} else if (terapeuta.getCiudad().isEmpty()) {
+			response = 4;
+		} else if (terapeuta.getTelefono().isEmpty()) {
+			response = 5;
+		}
 		return response;
 	}
 
