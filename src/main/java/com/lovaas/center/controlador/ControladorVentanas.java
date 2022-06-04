@@ -119,9 +119,11 @@ public class ControladorVentanas {
 	 * @param terapeuta objeto de tipo {@link Terapeuta}
 	 * @return 1 si se da de alta, 0 si ocurrio un error al darse de alta, -1 en
 	 *         caso de que esté vacío Nombre o Apellidos del terapeuta
+	 * @throws ExecutionException
+	 * @throws InterruptedException
 	 */
 
-	public int altaTerapeuta(Terapeuta terapeuta) {
+	public int altaTerapeuta(Terapeuta terapeuta) throws InterruptedException, ExecutionException {
 
 		int response = comprobarCamposTerapeuta(terapeuta);
 		if (response == 1) {
@@ -137,25 +139,58 @@ public class ControladorVentanas {
 	 * @param terapeuta
 	 * @return 1 si los campos son correctos. 2, si el nombre esta vacio. 3 si los
 	 *         apellidos estan vacios. 4 si la ciudad está vacia. 5 el telefono esta
-	 *         vacio.
+	 *         vacio. 6 todos los campos están vacios.
 	 */
 	private int comprobarCamposTerapeuta(Terapeuta terapeuta) {
 		int response = 1;
-		if (terapeuta.getNombre().isEmpty()) {
-			response = 2;
+		if (terapeuta == null) {
+			response = 6;
+		} else if (terapeuta.getNombre().isEmpty() && terapeuta.getApellidos().isEmpty()
+				&& terapeuta.getCiudad().isEmpty() && terapeuta.getTelefono().isEmpty()) {
+			response = 6;
 		} else if (terapeuta.getApellidos().isEmpty()) {
 			response = 3;
 		} else if (terapeuta.getCiudad().isEmpty()) {
 			response = 4;
 		} else if (terapeuta.getTelefono().isEmpty()) {
 			response = 5;
+		} else if (terapeuta.getNombre().isEmpty()) {
+			response = 2;
 		}
 		return response;
 	}
 
-	public boolean altaPrograma(Programa programa) throws InterruptedException, ExecutionException {
-		boolean alta = fbc.altaPrograma(programa);
-		return alta;
+	/**
+	 * Metodo que llama al modelo, para darlo de alta en bd. Primero comprueba sus
+	 * campos
+	 * 
+	 * @param programa
+	 * @return 1 si se da de alta, 0 si ocurrio en error en bd.
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public int altaPrograma(Programa programa) throws InterruptedException, ExecutionException {
+		int response = comprobarCamposPrograma(programa);
+		if (response == 1) {
+			response = fbc.altaPrograma(programa) ? 0 : -1;
+		}
+		return response;
+	}
+
+	/**
+	 * 
+	 * @param programa
+	 * @return 1, si los campos son correctos. 2 si el programa esta vacio. 3 Si el
+	 *         nombre esta vacio
+	 */
+	private int comprobarCamposPrograma(Programa programa) {
+		int response = 1;
+		if (programa == null) {
+			response = 2;
+		} else if (programa.getNombre() == null) {
+			response = 3;
+		}
+		return response;
 	}
 
 	public void irVentanaDashboard() {
@@ -168,9 +203,23 @@ public class ControladorVentanas {
 		ventanaLogin.setVisible(true);
 	}
 
-	public boolean actualizarTerapeuta(Terapeuta terapeuta) throws InterruptedException, ExecutionException {
-		boolean update = fbc.actualizarTerapeuta(terapeuta);
-		return update;
+	/**
+	 * Metodo que llama al modelo para actualizar {@link Terapeuta} en bd. Primero
+	 * comprueba que sus camos no esten vacios
+	 * 
+	 * @param terapeuta
+	 * @return Si ocurrió algún fallo al verificar campos devuelve respuesta del
+	 *         metodo comprobarCamposTerapeuta, 0 si se actualizó correctamente, -1
+	 *         en caso contrario
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	public int actualizarTerapeuta(Terapeuta terapeuta) throws InterruptedException, ExecutionException {
+		int response = comprobarCamposTerapeuta(terapeuta);
+		if (response == 1) {
+			response = fbc.actualizarTerapeuta(terapeuta) ? 0 : -1;
+		}
+		return response;
 	}
 
 	public boolean actualizarPrograma(Programa programa) throws InterruptedException, ExecutionException {
@@ -243,9 +292,17 @@ public class ControladorVentanas {
 	 * 
 	 * @param programaActual
 	 * @param nombreUnidad
+	 * @return <b>1</b>, si se asignó correctamente, <b>0</b>, si ocurrió algun
+	 *         problema al asignar.
 	 */
-	public void asinarUnidadPrograma(Programa programaActual, String nombreUnidad) {
+	public int asinarUnidadPrograma(Programa programaActual, String nombreUnidad) {
+		int response = 1;
 		boolean repetido = false;
+		if (nombreUnidad == null) {
+			response = 0;
+		} else if (nombreUnidad.isEmpty()) {
+			response = 0;
+		}
 		TreeMap<String, Object> unidades = programaActual.getUnidades();
 		for (Object value : unidades.values()) {
 			if (value.equals(nombreUnidad)) {
@@ -253,9 +310,10 @@ public class ControladorVentanas {
 			}
 		}
 		if (!repetido) {
-			String id = String.valueOf(unidades.size() + 1); // id autoincremental
-			unidades.put(id, nombreUnidad);
+//			String id = String.valueOf(unidades.size() + 1); // id autoincremental
+			unidades.put(nombreUnidad, nombreUnidad);
 		}
+		return response;
 	}
 
 	/**

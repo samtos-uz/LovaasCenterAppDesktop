@@ -2,11 +2,13 @@ package com.lovaas.center.vista;
 
 import java.awt.Color;
 
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import com.google.protobuf.DescriptorProtos.OneofOptions;
 import com.lovaas.center.controlador.ControladorVentanas;
 import com.lovaas.center.modelo.entidad.Programa;
 import com.lovaas.center.modelo.entidad.Terapeuta;
@@ -29,12 +31,14 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.SwingConstants;
 import java.awt.Cursor;
 import javax.swing.border.MatteBorder;
+import javax.swing.event.ListDataListener;
 import javax.swing.JTable;
 import javax.swing.JScrollPane;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import javax.swing.JTextField;
+import javax.swing.ListModel;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -345,20 +349,22 @@ public class VentanaDashboard extends JFrame {
 		btnAltaTerapeuta.setText("Alta");
 		btnAltaTerapeuta.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				int alta = -1;
 				String nombre = txtNombre.getText();
 				String apellidos = txtApellidos.getText();
 				String ciudad = txtCiudad.getText();
 				String telf = txtTelf.getText();
 				Terapeuta terapeuta = new Terapeuta(nombre, apellidos, ciudad, telf);
-				limpiarCamposTerapeuta();
-				int alta = controlador.altaTerapeuta(terapeuta);
 				try {
+					alta = controlador.altaTerapeuta(terapeuta);
+					respuestaTerapeuta(alta);
 					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
 				} catch (InterruptedException | ExecutionException e1) {
 					e1.printStackTrace();
 				}
-				respuestaAltaTerapeuta(alta);
-
+				if (alta == 1) {
+					limpiarCamposTerapeuta();
+				}
 			}
 		});
 		btnAltaTerapeuta.setBackground(new Color(0, 128, 0));
@@ -366,8 +372,7 @@ public class VentanaDashboard extends JFrame {
 		panelTerapeutas.add(btnAltaTerapeuta);
 
 		lblRespuestaTerapeuta = new JLabel("");
-		lblRespuestaTerapeuta.setHorizontalTextPosition(SwingConstants.LEADING);
-		lblRespuestaTerapeuta.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblRespuestaTerapeuta.setHorizontalTextPosition(SwingConstants.LEFT);
 		lblRespuestaTerapeuta.setForeground(Color.GRAY);
 		lblRespuestaTerapeuta.setFont(new Font("Roboto", Font.PLAIN, 14));
 		lblRespuestaTerapeuta.setBounds(49, 230, 328, 27);
@@ -376,6 +381,7 @@ public class VentanaDashboard extends JFrame {
 		btnActualizarTerapeuta = new JButton("Actualizar");
 		btnActualizarTerapeuta.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				int update = -1;
 				String nombre = txtNombre.getText();
 				String apellidos = txtApellidos.getText();
 				String ciudad = txtCiudad.getText();
@@ -385,12 +391,15 @@ public class VentanaDashboard extends JFrame {
 				terapeutaActual.setApellidos(apellidos);
 				terapeutaActual.setCiudad(ciudad);
 				terapeutaActual.setTelefono(telf);
-				limpiarCamposTerapeuta();
 				try {
-					boolean update = controlador.actualizarTerapeuta(terapeutaActual);// Actualizamos en bd
+					update = controlador.actualizarTerapeuta(terapeutaActual);// Actualizamos en bd
+					respuestaTerapeuta(update);
 					tableTerapeutas.setModel(controlador.getTabla(nombreTabla));
 				} catch (InterruptedException | ExecutionException e1) {
 					e1.printStackTrace();
+				}
+				if (update == 0) {
+					limpiarCamposTerapeuta();
 				}
 			}
 		});
@@ -448,6 +457,8 @@ public class VentanaDashboard extends JFrame {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void mousePressed(MouseEvent e) {
+				lblRespuestaPrograma.setText("");
+
 				if (!jListProgramas.isSelectionEmpty()) {
 
 					String nombrePrograma = jListProgramas.getSelectedValue();
@@ -476,6 +487,8 @@ public class VentanaDashboard extends JFrame {
 		jLIstUnidades.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
+				lblRespuestaPrograma.setText("");
+
 				if (!jLIstUnidades.isSelectionEmpty()) {
 					String parUnidad = jLIstUnidades.getSelectedValue();
 					System.out.println(parUnidad);
@@ -499,16 +512,25 @@ public class VentanaDashboard extends JFrame {
 		btnAnadirUnidad.addActionListener(new ActionListener() {
 			@SuppressWarnings("unchecked")
 			public void actionPerformed(ActionEvent e) {
-				String nombreUnidad;
-				nombreUnidad = JOptionPane.showInputDialog("Nombre de la unidad:");
-				System.out.println(nombreUnidad);
-				controlador.asinarUnidadPrograma(programaActual, nombreUnidad);
-				try {
-					controlador.actualizarUnidadesPrograma(programaActual);
-					jLIstUnidades.setModel(controlador.obtenerModeloUnidades(programaActual.getUnidades()));
-				} catch (InterruptedException | ExecutionException e1) {
-					e1.printStackTrace();
+				if (!jListProgramas.isSelectionEmpty()) {
+					String nombreUnidad = "";
+					nombreUnidad = JOptionPane.showInputDialog(crudProgramas, "Nombre de la unidad: ", "Asignar Unidad",
+							JOptionPane.DEFAULT_OPTION);
+					System.out.println(nombreUnidad);
+					int response = controlador.asinarUnidadPrograma(programaActual, nombreUnidad);
+					if (response == 1) {
+						try {
+							controlador.actualizarUnidadesPrograma(programaActual);
+							jLIstUnidades.setModel(controlador.obtenerModeloUnidades(programaActual.getUnidades()));
+						} catch (InterruptedException | ExecutionException e1) {
+							e1.printStackTrace();
+						}
+					} else {
+						respuestaPrograma("unidad", response);
+					}
+
 				}
+
 			}
 		});
 		btnAnadirUnidad.setForeground(new Color(255, 250, 240));
@@ -554,14 +576,19 @@ public class VentanaDashboard extends JFrame {
 		btnAltaPrograma = new JButton("Alta");
 		btnAltaPrograma.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				limpiarCamposPrograma();
+				int alta = -1;
+				String nombrePrograma = txtNombrePrograma.getText();
+				programaActual.setNombre(nombrePrograma);
+
 				try {
-					boolean alta = controlador.altaPrograma(programaActual);
-					respuestaAltaPrograma(alta);
+					alta = controlador.altaPrograma(programaActual);
+					respuestaPrograma("programa", alta);
 					jListProgramas.setModel(controlador.getListModel(nombreTabla));
 				} catch (InterruptedException | ExecutionException e1) {
 					e1.printStackTrace();
 				}
+
+				limpiarCamposPrograma();
 			}
 		});
 		btnAltaPrograma.setForeground(new Color(255, 250, 240));
@@ -585,6 +612,8 @@ public class VentanaDashboard extends JFrame {
 					boolean eliminado = controlador.eliminarPrograma(programaActual);
 					respuestaEliminadoPrograma(eliminado);
 					jListProgramas.setModel(controlador.getListModel(nombreTabla));
+//					jLIstUnidades.setModel(controlador.obtenerModeloUnidades(programaActual.getUnidades()));
+					jLIstUnidades.setModel(new DefaultListModel<String>());
 				} catch (InterruptedException | ExecutionException e1) {
 					e1.printStackTrace();
 				}
@@ -602,8 +631,7 @@ public class VentanaDashboard extends JFrame {
 		panelProgramas.add(btnActualizarPrograma);
 
 		lblRespuestaPrograma = new JLabel("");
-		lblRespuestaPrograma.setHorizontalTextPosition(SwingConstants.LEADING);
-		lblRespuestaPrograma.setHorizontalAlignment(SwingConstants.RIGHT);
+		lblRespuestaPrograma.setHorizontalTextPosition(SwingConstants.LEFT);
 		lblRespuestaPrograma.setForeground(Color.GRAY);
 		lblRespuestaPrograma.setFont(new Font("Roboto", Font.PLAIN, 14));
 		lblRespuestaPrograma.setBounds(49, 230, 328, 27);
@@ -791,36 +819,6 @@ public class VentanaDashboard extends JFrame {
 		});
 	}
 
-//	protected boolean comprobarCamposTp() {
-//		boolean correcto = false;
-//		String response = "";
-//
-//		String nombre = txtNombre.getText();
-//		String apellidos = txtApellidos.getText();
-//		String ciudad = txtCiudad.getText();
-//		String telf = txtTelf.getText();
-//
-//		if (nombre.isEmpty())
-//			response = "Nombre está vacío";
-//		else if (apellidos.isEmpty())
-//			response = "Apellidos está vacío";
-//		else if (ciudad.isEmpty())
-//			response = "Ciudad está vacío";
-//		else if (telf.isEmpty())
-//			response = "Teléfono está vacío";
-//		else
-//			correcto = true;
-//
-//		if (!correcto)
-//			mostrarErrorUsuario(response);
-//
-//		return correcto;
-//	}
-//
-//	private void mostrarErrorUsuario(String response) {
-//		lblRespuestaTerapeuta.setText(response);
-//	}
-
 	protected void respuestaEliminadoPrograma(boolean response) {
 		if (response) {
 			lblRespuestaPrograma.setText("Programa eliminado correctamente");
@@ -846,10 +844,10 @@ public class VentanaDashboard extends JFrame {
 	 * 
 	 * @param alta
 	 */
-	protected void respuestaAltaTerapeuta(int alta) {
+	protected void respuestaTerapeuta(int alta) {
 		switch (alta) {
 		case -1:
-			lblRespuestaTerapeuta.setText("Ocurrió un error al dar de alta");
+			lblRespuestaTerapeuta.setText("Ocurrió un error al registrar Terapeuta");
 			break;
 		case 0:
 			lblRespuestaTerapeuta.setText("Terapeuta registrado correctamente");
@@ -866,27 +864,48 @@ public class VentanaDashboard extends JFrame {
 		case 5:
 			lblRespuestaTerapeuta.setText("Teléfono está vacío");
 			break;
+		case 6:
+			lblRespuestaTerapeuta.setText("Los campos están vacíos");
+			break;
 
 		}
 	}
 
-	protected void respuestaAltaPrograma(boolean resonse) {
-		if (resonse) {
-			lblRespuestaPrograma.setText("Programa añadidido correctamente");
-			try {
-				TimeUnit.SECONDS.sleep(4);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+	/**
+	 * Informa al usuario el resultado de cualquier peticion realizada con Programa
+	 * 
+	 * @param categoriaPrograma
+	 * 
+	 * @param codigo
+	 */
+	protected void respuestaPrograma(String categoriaPrograma, int codigo) {
+
+		if (categoriaPrograma.matches("programa")) {
+			switch (codigo) {
+			case 0:
+				lblRespuestaPrograma.setText("Programa registrado correctamente.");
+				break;
+			case -1:
+				lblRespuestaPrograma.setText("Ocurrió un error al registrar programa");
+				break;
+			case 3:
+				lblRespuestaPrograma.setText("Nombre de programa no puede estar vacío");
+				break;
+			case 2:
+				lblRespuestaPrograma.setText("Programa está vacío");
+				break;
 			}
-			lblRespuestaPrograma.setText("");
-		} else {
-			lblRespuestaPrograma.setText("No se pudo dar de alta Programa");
-			try {
-				TimeUnit.SECONDS.sleep(4);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		}
+
+		if (categoriaPrograma.matches("unidad")) {
+			switch (codigo) {
+			case 0:
+				lblRespuestaPrograma.setText("Nombre de la unidad no puede estar vacío");
+				break;
+			case 1:
+				lblRespuestaTerapeuta.setText("Unidad asignada correctamente");
+				break;
 			}
-			lblRespuestaPrograma.setText("");
 		}
 	}
 

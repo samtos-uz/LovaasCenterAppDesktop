@@ -185,19 +185,18 @@ public class FirebaseController {
 	 * @param terapeuta
 	 * @return <code>true</code> si se pudo dar de alta correctamente,
 	 *         <code>false</code> en caso contrario
+	 * @throws ExecutionException
+	 * @throws InterruptedException
 	 */
-	public boolean altaTerapeuta(Terapeuta terapeuta) {
+	public boolean altaTerapeuta(Terapeuta terapeuta) throws InterruptedException, ExecutionException {
 		boolean alta = false;
 		String idDoc = terapeuta.getNombre() + " " + terapeuta.getApellidos();
 		// Peticion a bd (alta)
 		ApiFuture<WriteResult> addedDocRef = db.getFirebase().collection("terapeutas").document(idDoc).set(terapeuta);
 
-		try {
-			System.out.println("update time: " + addedDocRef.get().getUpdateTime());
-			alta = true;
-		} catch (InterruptedException | ExecutionException e) {
-			e.printStackTrace();
-		}
+		System.out.println("update time: " + addedDocRef.get().getUpdateTime());
+		alta = true;
+
 		return alta;
 	}
 
@@ -213,9 +212,10 @@ public class FirebaseController {
 	 */
 	public boolean altaPrograma(Programa programa) throws InterruptedException, ExecutionException {
 		boolean alta = false;
+		HashMap<String, Object> docData = new HashMap<String, Object>();
 		ApiFuture<WriteResult> future = db.getFirebase().collection("programasAndroid").document(programa.getNombre())
-				.set(null); // future.get() blocks on response
-		System.out.println("Alta programa correcta: " + future.get().getUpdateTime());
+				.set(docData);
+		System.out.println("Alta programa: " + future.get().getUpdateTime());
 		alta = true;
 
 		return alta;
@@ -252,12 +252,11 @@ public class FirebaseController {
 			DocumentReference docRef = db.getFirebase().collection("programas").document(programa.getNombre());
 
 			// (async) Update one field
-			Map<String, Object> camposPrograma = new HashMap<String, Object>();
-			camposPrograma.put("nombre", programa.getNombre());
-			ApiFuture<WriteResult> future1 = docRef.update(camposPrograma);
+			Map<String, Object> camposPrograma = programa.getUnidades();
+			ApiFuture<WriteResult> future = docRef.update(camposPrograma);
 
-			WriteResult result = future1.get();
-			System.out.println("Write result: " + result);
+			WriteResult result = future.get();
+			System.out.println("Programa acutalizado: " + result);
 			update = true;
 		} else {
 			update = altaPrograma(programa);
